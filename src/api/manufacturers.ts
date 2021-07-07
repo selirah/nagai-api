@@ -39,6 +39,8 @@ router.post(
       return res.sendStatus(500);
     }
 
+    manufacturer.products = [];
+
     return res.status(201).json(manufacturer);
   }
 );
@@ -78,7 +80,9 @@ router.put(
     const manufacturer = await getConnection()
       .getRepository(Manufacturer)
       .createQueryBuilder('manufacturer')
-      .where('"manufacturerId" = :manufacturerId', {
+      .leftJoinAndSelect('manufacturer.products', 'product')
+      .orderBy('manufacturer."createdAt"', 'DESC')
+      .where('manufacturer."manufacturerId" = :manufacturerId', {
         manufacturerId: manufacturerId,
       })
       .getOne();
@@ -124,7 +128,7 @@ router.delete(
     if (queryResult.affected !== 1) {
       return res.sendStatus(500);
     }
-    return res.sendStatus(204);
+    return res.sendStatus(200);
   }
 );
 

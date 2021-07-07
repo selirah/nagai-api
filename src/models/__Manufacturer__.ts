@@ -12,7 +12,7 @@ export class __Manufacturer__ {
   location: string;
   cityId: number;
   logo: string;
-  product: __Product__[];
+  products: __Product__[];
   createdAt: Date;
   updatedAt: Date;
 }

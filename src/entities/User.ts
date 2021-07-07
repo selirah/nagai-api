@@ -5,62 +5,62 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  OneToMany,
-} from 'typeorm';
-import { Delivery } from './Delivery';
-import { InventoryTrail } from './InventoryTrail';
-import { Payment } from './Payment';
+  OneToMany
+} from 'typeorm'
+import { Delivery } from './Delivery'
+import { InventoryTrail } from './InventoryTrail'
+import { Payment } from './Payment'
 
 export enum UserRole {
   ADMIN = 'admin',
   AGENT = 'agent',
-  DISPATCH = 'dispatch',
+  DISPATCH = 'dispatch'
 }
 
 @Entity()
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id: number;
+  id: number
 
   @Column({ unique: true })
-  email: string;
+  email: string
 
   @Column({ unique: true })
-  phone: string;
+  phone: string
 
   @Column()
-  password: string;
-
-  @Column()
-  firstName: string;
-
-  @Column()
-  lastName: string;
+  password: string
 
   @Column({ nullable: true })
-  avatar: string;
+  firstName: string
+
+  @Column({ nullable: true })
+  lastName: string
+
+  @Column({ nullable: true })
+  avatar: string
 
   @Column({ default: false })
-  isVerified: boolean;
+  isVerified: boolean
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.ADMIN })
-  role: string;
+  role: string
 
   @OneToMany(() => InventoryTrail, (trail) => trail.user)
-  inventoryTrails: InventoryTrail[];
+  inventoryTrails: InventoryTrail[]
 
   @OneToMany(() => Delivery, (delivery) => delivery.dispatch)
-  deliveries: Delivery[];
+  deliveries: Delivery[]
 
   @OneToMany(() => Delivery, (delivery) => delivery.agent)
-  agents: Delivery[];
+  agents: Delivery[]
 
   @OneToMany(() => Payment, (payment) => payment.payee)
-  payments: Payment[];
+  payments: Payment[]
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 }
