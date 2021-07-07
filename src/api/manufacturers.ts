@@ -1,10 +1,10 @@
-import { router } from 'utils'
+import { router } from '../utils'
 import { Request, Response } from 'express'
-import { Manufacturer } from 'entities/Manufacturer'
-import { authorization } from 'middleware/auth'
+import { Manufacturer } from '../entities/Manufacturer'
+import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
-import { validateManufacturer } from 'validations'
-import { __Manufacturer__ } from 'models/__Manufacturer__'
+import { validateManufacturer } from '../validations'
+import { __Manufacturer__ } from '../models/__Manufacturer__'
 
 router.post(
   '/manufacturers',

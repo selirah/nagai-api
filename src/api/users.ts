@@ -1,8 +1,8 @@
-import { router, sendEmail, sendSMS, jwtToken } from 'utils'
+import { router, sendEmail, sendSMS, jwtToken } from '../utils'
 import { Request, Response } from 'express'
-import { authorization } from 'middleware/auth'
-import { User, UserRole } from 'entities/User'
-import { Code } from 'entities/Code'
+import { authorization } from '../middleware/auth'
+import { User, UserRole } from '../entities/User'
+import { Code } from '../entities/Code'
 import {
   validateRegister,
   alreadyExists,
@@ -11,13 +11,13 @@ import {
   validateLogin,
   validateAgentAndDispatch
 } from '../validations'
-import { __User__ } from 'models/__User__'
-import { __Code__ } from 'models/__Code__'
+import { __User__ } from '../models/__User__'
+import { __Code__ } from '../models/__Code__'
 import argon2 from 'argon2'
 import { getConnection } from 'typeorm'
 import moment from 'moment'
-import { isEmpty } from 'validations/isEmpty'
-import { sanitizePhone } from 'helper/functions'
+import { isEmpty } from '../validations/isEmpty'
+import { sanitizePhone } from '../helper/functions'
 
 router.post('/users/register', async (req: Request, res: Response) => {
   const options: __User__ = req.body

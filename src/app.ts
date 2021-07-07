@@ -19,7 +19,7 @@ import {
   payments
 } from './api'
 const api: string = '/api/v1'
-import { passportMiddleware } from 'middleware/passport'
+import { passportMiddleware } from './middleware/passport'
 import path from 'path'
 
 const app = express()

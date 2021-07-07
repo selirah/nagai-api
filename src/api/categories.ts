@@ -1,10 +1,10 @@
-import { router } from 'utils'
+import { router } from '../utils'
 import { Request, Response } from 'express'
-import { Category } from 'entities/Category'
-import { authorization } from 'middleware/auth'
+import { Category } from '../entities/Category'
+import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
-import { validateCategory } from 'validations'
-import { __Category__ } from 'models/__Category__'
+import { validateCategory } from '../validations'
+import { __Category__ } from '../models/__Category__'
 
 router.post(
   '/categories',

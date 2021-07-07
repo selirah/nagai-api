@@ -1,10 +1,10 @@
-import { router } from 'utils'
+import { router } from '../utils'
 import { Request, Response } from 'express'
-import { Company } from 'entities/Company'
-import { authorization } from 'middleware/auth'
+import { Company } from '../entities/Company'
+import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
-import { validateCompany } from 'validations'
-import { __Company__ } from 'models/__Company__'
+import { validateCompany } from '../validations'
+import { __Company__ } from '../models/__Company__'
 
 router.post('/company', authorization, async (req: Request, res: Response) => {
   const inputs: __Company__ = req.body

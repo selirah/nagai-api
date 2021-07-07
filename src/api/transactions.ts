@@ -1,7 +1,7 @@
-import { router } from 'utils'
+import { router } from '../zutils'
 import { Request, Response } from 'express'
-import { Transaction } from 'entities/Transaction'
-import { authorization } from 'middleware/auth'
+import { Transaction } from '../entities/Transaction'
+import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
 
 router.get(

@@ -1,11 +1,11 @@
-import { router } from 'utils'
+import { router } from '../utils'
 import { Request, Response } from 'express'
-import { UserTerritory } from 'entities/UserTerritory'
-import { User } from 'entities/User'
-import { authorization } from 'middleware/auth'
+import { UserTerritory } from '../entities/UserTerritory'
+import { User } from '../entities/User'
+import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
-import { validateUserTerritory } from 'validations'
-import { __UserTerritory__ } from 'models/__UserTerritory__'
+import { validateUserTerritory } from '../validations'
+import { __UserTerritory__ } from '../models/__UserTerritory__'
 
 router.post(
   '/user-territories',

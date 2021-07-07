@@ -1,5 +1,5 @@
 import validator from 'validator'
-import { __Territory__ } from 'models/__Territory__'
+import { __Territory__ } from '../models/__Territory__'
 
 export const validateTerritory = (inputs: __Territory__) => {
   if (validator.isEmpty(inputs.territoryName)) {

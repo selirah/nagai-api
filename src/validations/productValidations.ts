@@ -1,5 +1,5 @@
 import validator from 'validator'
-import { __Product__ } from 'models/__Product__'
+import { __Product__ } from '../models/__Product__'
 
 export const validateProduct = (inputs: __Product__) => {
   if (validator.isEmpty(inputs.productName)) {

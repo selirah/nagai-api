@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 import { config } from '../config'
-import { User } from 'entities/User'
-import { __User__ } from 'models/__User__'
+import { User } from '../entities/User'
+import { __User__ } from '../models/__User__'
 
 export const jwtToken = (user: User): string => {
   const payload: __User__ = {

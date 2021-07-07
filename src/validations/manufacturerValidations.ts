@@ -1,5 +1,5 @@
 import validator from 'validator'
-import { __Manufacturer__ } from 'models/__Manufacturer__'
+import { __Manufacturer__ } from '../models/__Manufacturer__'
 
 export const validateManufacturer = (inputs: __Manufacturer__) => {
   if (validator.isEmpty(inputs.name)) {

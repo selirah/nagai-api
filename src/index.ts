@@ -1,15 +1,15 @@
 import 'reflect-metadata'
-import { __prod__ } from 'utils'
+import { __prod__ } from './utils'
 import { Connection, createConnection } from 'typeorm'
 import { ormconfig } from './ormconfig'
 import { config } from './config'
-import { server, io } from 'utils/socketio'
-import { __Order__ } from 'models/__Order__'
+import { server, io } from './utils/socketio'
+import { __Order__ } from './models/__Order__'
 
 const main = async () => {
   await createConnection(ormconfig)
     .then((conn: Connection) => {
-      // conn.runMigrations()
+      // conn.runMigrations();
       console.log('db connected: ', conn.isConnected)
     })
     .catch((err) => console.log(err))

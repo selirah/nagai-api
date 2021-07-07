@@ -1,10 +1,10 @@
-import { router } from 'utils'
+import { router } from '../utils'
 import { Request, Response } from 'express'
-import { Product } from 'entities/Product'
-import { authorization } from 'middleware/auth'
+import { Product } from '../entities/Product'
+import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
-import { validateProduct } from 'validations'
-import { __Product__ } from 'models/__Product__'
+import { validateProduct } from '../validations'
+import { __Product__ } from '../models/__Product__'
 
 router.post('/products', authorization, async (req: Request, res: Response) => {
   const inputs: __Product__ = req.body

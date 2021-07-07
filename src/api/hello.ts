@@ -1,4 +1,4 @@
-import { router } from 'utils'
+import { router } from '../utils'
 import { Request, Response } from 'express'
 import passport from 'passport'
 

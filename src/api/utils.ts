@@ -1,8 +1,8 @@
-import { router } from 'utils'
+import { router } from '../utils'
 import { Request, Response } from 'express'
-import { Region } from 'entities/Region'
-import { City } from 'entities/City'
-import { Unit } from 'entities/Unit'
+import { Region } from '../entities/Region'
+import { City } from '../entities/City'
+import { Unit } from '../entities/Unit'
 import { getConnection } from 'typeorm'
 
 router.get('/utils/regions', async (_: Request, res: Response) => {

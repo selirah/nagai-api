@@ -1,5 +1,5 @@
 import validator from 'validator'
-import { __UserTerritory__ } from 'models/__UserTerritory__'
+import { __UserTerritory__ } from '../models/__UserTerritory__'
 import { isEmpty } from './isEmpty'
 
 export const validateUserTerritory = (inputs: __UserTerritory__) => {

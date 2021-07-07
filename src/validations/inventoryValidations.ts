@@ -1,5 +1,5 @@
 import validator from 'validator'
-import { __Inventory__ } from 'models/__Inventory__'
+import { __Inventory__ } from '../models/__Inventory__'
 
 export const validateInventory = (inputs: __Inventory__) => {
   if (validator.isEmpty(`${inputs.productId}`)) {

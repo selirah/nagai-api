@@ -1,12 +1,12 @@
-import { router } from 'utils'
+import { router } from '../utils'
 import { Request, Response } from 'express'
-import { Inventory } from 'entities/Inventory'
-import { InventoryTrail } from 'entities/InventoryTrail'
-import { authorization } from 'middleware/auth'
+import { Inventory } from '../entities/Inventory'
+import { InventoryTrail } from '../entities/InventoryTrail'
+import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
-import { validateInventory, productExists } from 'validations'
-import { __Inventory__ } from 'models/__Inventory__'
-import { __User__ } from 'models/__User__'
+import { validateInventory, productExists } from '../validations'
+import { __Inventory__ } from '../models/__Inventory__'
+import { __User__ } from '../models/__User__'
 
 router.post(
   '/inventories',

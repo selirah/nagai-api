@@ -1,14 +1,14 @@
-import { router /*, sendEmail*/ } from 'utils'
+import { router /*, sendEmail*/ } from '../utils'
 import { Request, Response } from 'express'
-import { Order } from 'entities/Order'
-import { Transaction } from 'entities/Transaction'
+import { Order } from '../entities/Order'
+import { Transaction } from '../entities/Transaction'
 // import { Client } from '../entities/Client';
-import { authorization } from 'middleware/auth'
+import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
-import { validateOrder } from 'validations'
-import { __Order__ } from 'models/__Order__'
+import { validateOrder } from '../validations'
+import { __Order__ } from '../models/__Order__'
 import moment from 'moment'
-import { __Item__ } from 'models/__Item__'
+import { __Item__ } from 'src/models/__Item__'
 
 router.post('/orders', authorization, async (req: Request, res: Response) => {
   const inputs: __Order__ = req.body

@@ -1,5 +1,5 @@
 import validator from 'validator'
-import { __Category__ } from 'models/__Category__'
+import { __Category__ } from '../models/__Category__'
 
 export const validateCategory = (inputs: __Category__) => {
   if (validator.isEmpty(inputs.category)) {

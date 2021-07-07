@@ -1,11 +1,11 @@
-import { router } from 'utils'
+import { router } from '../utils'
 import { Request, Response } from 'express'
-import { Payment } from 'entities/Payment'
-import { Transaction } from 'entities/Transaction'
-import { authorization } from 'middleware/auth'
+import { Payment } from '../entities/Payment'
+import { Transaction } from '../entities/Transaction'
+import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
-import { validatePayments } from 'validations'
-import { __Payment__ } from 'models/__Payment__'
+import { validatePayments } from '../validations'
+import { __Payment__ } from '../models/__Payment__'
 import moment from 'moment'
 
 router.post('/payments', authorization, async (req: Request, res: Response) => {

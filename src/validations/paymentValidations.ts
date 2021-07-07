@@ -1,5 +1,5 @@
 import validator from 'validator'
-import { __Payment__ } from 'models/__Payment__'
+import { __Payment__ } from '../models/__Payment__'
 
 export const validatePayments = (inputs: __Payment__) => {
   if (validator.isEmpty(`${inputs.transactionId}`)) {
