@@ -1,53 +1,53 @@
-import { router } from '../utils';
-import { Request, Response } from 'express';
-import { Territory } from '../entities/Territory';
-import { authorization } from '../middleware/auth';
-import { getConnection } from 'typeorm';
-import { validateTerritory } from '../validations';
-import { __Territory__ } from '../models/__Territory__';
+import { router } from 'utils'
+import { Request, Response } from 'express'
+import { Territory } from 'entities/Territory'
+import { authorization } from 'middleware/auth'
+import { getConnection } from 'typeorm'
+import { validateTerritory } from 'validations'
+import { __Territory__ } from 'models/__Territory__'
 
 router.post(
   '/territories',
   authorization,
   async (req: Request, res: Response) => {
-    const inputs: __Territory__ = req.body;
-    const errors = validateTerritory(inputs);
+    const inputs: __Territory__ = req.body
+    const errors = validateTerritory(inputs)
 
     if (errors) {
-      return res.status(400).json({ errors });
+      return res.status(400).json({ errors })
     }
 
-    let territory: __Territory__;
+    let territory: __Territory__
     const queryResult = await getConnection()
       .createQueryBuilder()
       .insert()
       .into(Territory)
       .values({
         territoryName: inputs.territoryName,
-        coordinates: inputs.coordinates,
+        coordinates: inputs.coordinates
       })
       .returning('*')
-      .execute();
+      .execute()
 
-    territory = queryResult.raw[0];
+    territory = queryResult.raw[0]
     if (!territory) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
 
-    return res.status(201).json(territory);
+    return res.status(201).json(territory)
   }
-);
+)
 
 router.put(
   '/territories/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const inputs: __Territory__ = req.body;
-    const errors = validateTerritory(inputs);
-    const territoryId: number = parseInt(req.params.id);
+    const inputs: __Territory__ = req.body
+    const errors = validateTerritory(inputs)
+    const territoryId: number = parseInt(req.params.id)
 
     if (errors) {
-      return res.status(400).json({ errors });
+      return res.status(400).json({ errors })
     }
 
     const queryResult = await getConnection()
@@ -55,31 +55,31 @@ router.put(
       .update(Territory)
       .set({
         territoryName: inputs.territoryName,
-        coordinates: inputs.coordinates,
+        coordinates: inputs.coordinates
       })
       .where('"territoryId" = :territoryId', {
-        territoryId: territoryId,
+        territoryId: territoryId
       })
-      .execute();
+      .execute()
 
     if (queryResult.affected !== 1) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
     const territory = await getConnection()
       .getRepository(Territory)
       .createQueryBuilder('territory')
       .where('"territoryId" = :territoryId', {
-        territoryId: territoryId,
+        territoryId: territoryId
       })
-      .getOne();
+      .getOne()
 
     if (!territory) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
 
-    return res.status(200).json(territory);
+    return res.status(200).json(territory)
   }
-);
+)
 
 router.get('/territories', async (_: Request, res: Response) => {
   const territories = await getConnection()
@@ -87,31 +87,31 @@ router.get('/territories', async (_: Request, res: Response) => {
     .createQueryBuilder('territories')
     .leftJoinAndSelect('territories.clients', 'clients')
     .orderBy('territories."createdAt"', 'DESC')
-    .getMany();
+    .getMany()
 
-  return res.status(200).json(territories);
-});
+  return res.status(200).json(territories)
+})
 
 router.delete(
   '/territories/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const territoryId: number = parseInt(req.params.id);
+    const territoryId: number = parseInt(req.params.id)
 
     const queryResult = await getConnection()
       .createQueryBuilder()
       .delete()
       .from(Territory)
       .where('"territoryId" = :territoryId', {
-        territoryId: territoryId,
+        territoryId: territoryId
       })
-      .execute();
+      .execute()
 
     if (queryResult.affected !== 1) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
-    return res.sendStatus(204);
+    return res.sendStatus(204)
   }
-);
+)
 
-export { router as territories };
+export { router as territories }

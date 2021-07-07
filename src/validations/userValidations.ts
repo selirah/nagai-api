@@ -1,6 +1,6 @@
 import validator from 'validator'
-import { __User__ } from '../models/__User__'
-import { __Code__ } from '../models/__Code__'
+import { __User__ } from 'models/__User__'
+import { __Code__ } from 'models/__Code__'
 
 export const validateRegister = (inputs: __User__) => {
   if (validator.isEmpty(inputs.email)) {

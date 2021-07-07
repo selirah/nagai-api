@@ -1,23 +1,23 @@
-import { router } from '../utils';
-import { Request, Response } from 'express';
-import { Manufacturer } from '../entities/Manufacturer';
-import { authorization } from '../middleware/auth';
-import { getConnection } from 'typeorm';
-import { validateManufacturer } from '../validations';
-import { __Manufacturer__ } from '../models/__Manufacturer__';
+import { router } from 'utils'
+import { Request, Response } from 'express'
+import { Manufacturer } from 'entities/Manufacturer'
+import { authorization } from 'middleware/auth'
+import { getConnection } from 'typeorm'
+import { validateManufacturer } from 'validations'
+import { __Manufacturer__ } from 'models/__Manufacturer__'
 
 router.post(
   '/manufacturers',
   authorization,
   async (req: Request, res: Response) => {
-    const inputs: __Manufacturer__ = req.body;
-    const errors = validateManufacturer(inputs);
+    const inputs: __Manufacturer__ = req.body
+    const errors = validateManufacturer(inputs)
 
     if (errors) {
-      return res.status(400).json({ errors });
+      return res.status(400).json({ errors })
     }
 
-    let manufacturer: __Manufacturer__;
+    let manufacturer: __Manufacturer__
     const queryResult = await getConnection()
       .createQueryBuilder()
       .insert()
@@ -29,32 +29,32 @@ router.post(
         coordinates: inputs.coordinates,
         cityId: inputs.cityId,
         location: inputs.location,
-        logo: inputs.logo,
+        logo: inputs.logo
       })
       .returning('*')
-      .execute();
+      .execute()
 
-    manufacturer = queryResult.raw[0];
+    manufacturer = queryResult.raw[0]
     if (!manufacturer) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
 
-    manufacturer.products = [];
+    manufacturer.products = []
 
-    return res.status(201).json(manufacturer);
+    return res.status(201).json(manufacturer)
   }
-);
+)
 
 router.put(
   '/manufacturers/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const inputs: __Manufacturer__ = req.body;
-    const errors = validateManufacturer(inputs);
-    const manufacturerId: number = parseInt(req.params.id);
+    const inputs: __Manufacturer__ = req.body
+    const errors = validateManufacturer(inputs)
+    const manufacturerId: number = parseInt(req.params.id)
 
     if (errors) {
-      return res.status(400).json({ errors });
+      return res.status(400).json({ errors })
     }
 
     const queryResult = await getConnection()
@@ -67,15 +67,15 @@ router.put(
         coordinates: inputs.coordinates,
         cityId: inputs.cityId,
         location: inputs.location,
-        logo: inputs.logo,
+        logo: inputs.logo
       })
       .where('"manufacturerId" = :manufacturerId', {
-        manufacturerId: manufacturerId,
+        manufacturerId: manufacturerId
       })
-      .execute();
+      .execute()
 
     if (queryResult.affected !== 1) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
     const manufacturer = await getConnection()
       .getRepository(Manufacturer)
@@ -83,17 +83,17 @@ router.put(
       .leftJoinAndSelect('manufacturer.products', 'product')
       .orderBy('manufacturer."createdAt"', 'DESC')
       .where('manufacturer."manufacturerId" = :manufacturerId', {
-        manufacturerId: manufacturerId,
+        manufacturerId: manufacturerId
       })
-      .getOne();
+      .getOne()
 
     if (!manufacturer) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
 
-    return res.status(200).json(manufacturer);
+    return res.status(200).json(manufacturer)
   }
-);
+)
 
 router.get(
   '/manufacturers',
@@ -104,32 +104,32 @@ router.get(
       .createQueryBuilder('manufacturers')
       .leftJoinAndSelect('manufacturers.products', 'product')
       .orderBy('manufacturers."createdAt"', 'DESC')
-      .getMany();
+      .getMany()
 
-    return res.status(200).json(manufacturers);
+    return res.status(200).json(manufacturers)
   }
-);
+)
 
 router.delete(
   '/manufacturers/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const manufacturerId: number = parseInt(req.params.id);
+    const manufacturerId: number = parseInt(req.params.id)
 
     const queryResult = await getConnection()
       .createQueryBuilder()
       .delete()
       .from(Manufacturer)
       .where('"manufacturerId" = :manufacturerId', {
-        manufacturerId: manufacturerId,
+        manufacturerId: manufacturerId
       })
-      .execute();
+      .execute()
 
     if (queryResult.affected !== 1) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
-    return res.sendStatus(200);
+    return res.sendStatus(200)
   }
-);
+)
 
-export { router as manufacturers };
+export { router as manufacturers }

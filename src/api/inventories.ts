@@ -1,25 +1,25 @@
-import { router } from '../utils';
-import { Request, Response } from 'express';
-import { Inventory } from '../entities/Inventory';
-import { InventoryTrail } from '../entities/InventoryTrail';
-import { authorization } from '../middleware/auth';
-import { getConnection } from 'typeorm';
-import { validateInventory, productExists } from '../validations';
-import { __Inventory__ } from '../models/__Inventory__';
-import { __User__ } from '../models/__User__';
+import { router } from 'utils'
+import { Request, Response } from 'express'
+import { Inventory } from 'entities/Inventory'
+import { InventoryTrail } from 'entities/InventoryTrail'
+import { authorization } from 'middleware/auth'
+import { getConnection } from 'typeorm'
+import { validateInventory, productExists } from 'validations'
+import { __Inventory__ } from 'models/__Inventory__'
+import { __User__ } from 'models/__User__'
 
 router.post(
   '/inventories',
   authorization,
   async (req: Request, res: Response) => {
-    const inputs: __Inventory__ = req.body;
-    const errors = validateInventory(inputs);
+    const inputs: __Inventory__ = req.body
+    const errors = validateInventory(inputs)
 
     if (errors) {
-      return res.status(400).json({ errors });
+      return res.status(400).json({ errors })
     }
 
-    let inventory: __Inventory__ | undefined;
+    let inventory: __Inventory__ | undefined
     try {
       const queryResult = await getConnection()
         .createQueryBuilder()
@@ -34,14 +34,14 @@ router.post(
           quantityInStock: inputs.quantityInStock,
           reorderLevel: inputs.reorderLevel,
           reorderQuantity: inputs.reorderQuantity,
-          reorderDate: inputs.reorderDate,
+          reorderDate: inputs.reorderDate
         })
         .returning('*')
-        .execute();
+        .execute()
 
-      inventory = queryResult.raw[0];
+      inventory = queryResult.raw[0]
       if (!inventory) {
-        return res.sendStatus(500);
+        return res.sendStatus(500)
       }
       // save inventory trail
       await InventoryTrail.create({
@@ -53,28 +53,28 @@ router.post(
         reorderLevel: inputs.reorderLevel,
         reorderQuantity: inputs.reorderQuantity,
         reorderDate: inputs.reorderDate,
-        user: req.user,
-      }).save();
+        user: req.user
+      }).save()
     } catch (err) {
-      const errors = productExists(inputs, err);
+      const errors = productExists(inputs, err)
       if (errors) {
-        return res.status(400).json({ errors });
+        return res.status(400).json({ errors })
       }
     }
-    return res.status(201).json(inventory);
+    return res.status(201).json(inventory)
   }
-);
+)
 
 router.put(
   '/inventories/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const inputs: __Inventory__ = req.body;
-    const errors = validateInventory(inputs);
-    const id: string = req.params.id;
+    const inputs: __Inventory__ = req.body
+    const errors = validateInventory(inputs)
+    const id: string = req.params.id
 
     if (errors) {
-      return res.status(400).json({ errors });
+      return res.status(400).json({ errors })
     }
 
     const queryResult = await getConnection()
@@ -88,15 +88,15 @@ router.put(
         quantityInStock: () => `"quantityInStock" + ${inputs.quantityInStock}`,
         reorderLevel: inputs.reorderLevel,
         reorderQuantity: inputs.reorderQuantity,
-        reorderDate: inputs.reorderDate,
+        reorderDate: inputs.reorderDate
       })
       .where('"inventoryId" = :id', {
-        id: id,
+        id: id
       })
-      .execute();
+      .execute()
 
     if (queryResult.affected !== 1) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
     // save inventory trail
     await InventoryTrail.create({
@@ -108,30 +108,30 @@ router.put(
       reorderLevel: inputs.reorderLevel,
       reorderQuantity: inputs.reorderQuantity,
       reorderDate: inputs.reorderDate,
-      user: req.user,
-    }).save();
+      user: req.user
+    }).save()
     const inventory = await getConnection()
       .getRepository(Inventory)
       .createQueryBuilder('inventory')
       .where('"inventoryId" = :id', {
-        id: id,
+        id: id
       })
-      .getOne();
+      .getOne()
 
     if (!inventory) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
 
-    return res.status(200).json(inventory);
+    return res.status(200).json(inventory)
   }
-);
+)
 
 router.get(
   '/inventories',
   authorization,
   async (req: Request, res: Response) => {
-    const limit = req.query.limit !== undefined ? +req.query.limit : 100;
-    const offset = req.query.offset !== undefined ? +req.query.offset : 0;
+    const limit = req.query.limit !== undefined ? +req.query.limit : 100
+    const offset = req.query.offset !== undefined ? +req.query.offset : 0
 
     const inventories = await getConnection()
       .getRepository(Inventory)
@@ -139,18 +139,18 @@ router.get(
       .orderBy('"createdAt"', 'DESC')
       .skip(offset)
       .take(limit)
-      .getMany();
+      .getMany()
 
-    return res.status(200).json(inventories);
+    return res.status(200).json(inventories)
   }
-);
+)
 
 router.get(
   '/inventories/trails',
   authorization,
   async (req: Request, res: Response) => {
-    const limit = req.query.limit !== undefined ? +req.query.limit : 100;
-    const offset = req.query.offset !== undefined ? +req.query.offset : 0;
+    const limit = req.query.limit !== undefined ? +req.query.limit : 100
+    const offset = req.query.offset !== undefined ? +req.query.offset : 0
 
     const trails = await getConnection()
       .getRepository(InventoryTrail)
@@ -160,32 +160,32 @@ router.get(
       // .orderBy('trails."createdAt"', 'DESC')
       .skip(offset)
       .take(limit)
-      .getMany();
+      .getMany()
 
-    return res.status(200).json(trails);
+    return res.status(200).json(trails)
   }
-);
+)
 
 router.delete(
   '/inventories/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const id: number = parseInt(req.params.id);
+    const id: number = parseInt(req.params.id)
 
     const queryResult = await getConnection()
       .createQueryBuilder()
       .delete()
       .from(Inventory)
       .where('"inventoryId" = :id', {
-        id: id,
+        id: id
       })
-      .execute();
+      .execute()
 
     if (queryResult.affected !== 1) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
-    return res.sendStatus(204);
+    return res.sendStatus(204)
   }
-);
+)
 
-export { router as inventories };
+export { router as inventories }

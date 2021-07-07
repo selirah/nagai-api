@@ -1,19 +1,19 @@
-import { router } from '../utils';
-import { Request, Response } from 'express';
-import { Company } from '../entities/Company';
-import { authorization } from '../middleware/auth';
-import { getConnection } from 'typeorm';
-import { validateCompany } from '../validations';
-import { __Company__ } from '../models/__Company__';
+import { router } from 'utils'
+import { Request, Response } from 'express'
+import { Company } from 'entities/Company'
+import { authorization } from 'middleware/auth'
+import { getConnection } from 'typeorm'
+import { validateCompany } from 'validations'
+import { __Company__ } from 'models/__Company__'
 
 router.post('/company', authorization, async (req: Request, res: Response) => {
-  const inputs: __Company__ = req.body;
-  const errors = validateCompany(inputs);
+  const inputs: __Company__ = req.body
+  const errors = validateCompany(inputs)
 
   if (errors) {
-    return res.status(400).json({ errors });
+    return res.status(400).json({ errors })
   }
-  let company: __Company__;
+  let company: __Company__
   const queryResult = await getConnection()
     .createQueryBuilder()
     .insert()
@@ -23,29 +23,29 @@ router.post('/company', authorization, async (req: Request, res: Response) => {
       email: inputs.email,
       phone: inputs.phone,
       coordinates: inputs.coordinates,
-      logo: inputs.logo,
+      logo: inputs.logo
     })
     .returning('*')
-    .execute();
-  company = queryResult.raw[0];
+    .execute()
+  company = queryResult.raw[0]
 
   if (!company) {
-    return res.sendStatus(500);
+    return res.sendStatus(500)
   }
 
-  return res.status(201).json(company);
-});
+  return res.status(201).json(company)
+})
 
 router.put(
   '/company/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const inputs: __Company__ = req.body;
-    const errors = validateCompany(inputs);
-    const companyId: number = parseInt(req.params.id);
+    const inputs: __Company__ = req.body
+    const errors = validateCompany(inputs)
+    const companyId: number = parseInt(req.params.id)
 
     if (errors) {
-      return res.status(400).json({ errors });
+      return res.status(400).json({ errors })
     }
 
     const queryResult = await getConnection()
@@ -56,55 +56,55 @@ router.put(
         email: inputs.email,
         phone: inputs.phone,
         coordinates: inputs.coordinates,
-        logo: inputs.logo,
+        logo: inputs.logo
       })
       .where('id = :id', { id: companyId })
-      .execute();
+      .execute()
 
     if (queryResult.affected !== 1) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
     const company = await getConnection()
       .getRepository(Company)
       .createQueryBuilder('company')
       .where('id = :id', { id: companyId })
-      .getOne();
+      .getOne()
 
     if (!company) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
 
-    return res.status(200).json(company);
+    return res.status(200).json(company)
   }
-);
+)
 
 router.get('/company', authorization, async (_: Request, res: Response) => {
   const company = await getConnection()
     .getRepository(Company)
     .createQueryBuilder('company')
-    .getOne();
+    .getOne()
 
-  return res.status(200).json(company);
-});
+  return res.status(200).json(company)
+})
 
 router.delete(
   '/company/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const companyId: number = parseInt(req.params.id);
+    const companyId: number = parseInt(req.params.id)
 
     const queryResult = await getConnection()
       .createQueryBuilder()
       .delete()
       .from(Company)
       .where('id = :id', { id: companyId })
-      .execute();
+      .execute()
 
     if (queryResult.affected !== 1) {
-      return res.sendStatus(500);
+      return res.sendStatus(500)
     }
-    return res.sendStatus(204);
+    return res.sendStatus(204)
   }
-);
+)
 
-export { router as company };
+export { router as company }

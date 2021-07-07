@@ -1,7 +1,7 @@
-import jwt from 'jsonwebtoken';
-import { config } from '../config';
-import { User } from '../entities/User';
-import { __User__ } from '../models/__User__';
+import jwt from 'jsonwebtoken'
+import { config } from '../config'
+import { User } from 'entities/User'
+import { __User__ } from 'models/__User__'
 
 export const jwtToken = (user: User): string => {
   const payload: __User__ = {
@@ -15,11 +15,11 @@ export const jwtToken = (user: User): string => {
     avatar: user.avatar,
     role: user.role,
     createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  };
+    updatedAt: user.updatedAt
+  }
   const token = jwt.sign(payload, config.secretKey, {
-    expiresIn: '24h',
-  });
+    expiresIn: '24h'
+  })
 
-  return token;
-};
+  return token
+}
