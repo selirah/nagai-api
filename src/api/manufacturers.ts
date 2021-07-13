@@ -27,7 +27,6 @@ router.post(
         email: inputs.email,
         phone: inputs.phone,
         coordinates: inputs.coordinates,
-        cityId: inputs.cityId,
         location: inputs.location,
         logo: inputs.logo
       })
@@ -65,7 +64,6 @@ router.put(
         email: inputs.email,
         phone: inputs.phone,
         coordinates: inputs.coordinates,
-        cityId: inputs.cityId,
         location: inputs.location,
         logo: inputs.logo
       })
