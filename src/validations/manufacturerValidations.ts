@@ -88,15 +88,6 @@ export const validateManufacturer = (inputs: __Manufacturer__) => {
     ]
   }
 
-  if (validator.isEmpty(`${inputs.cityId}`)) {
-    return [
-      {
-        field: 'city',
-        message: 'City is requried'
-      }
-    ]
-  }
-
   if (validator.isEmpty(inputs.location)) {
     return [
       {
