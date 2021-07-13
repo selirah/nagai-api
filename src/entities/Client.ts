@@ -36,9 +36,6 @@ export class Client extends BaseEntity {
   location: string
 
   @Column()
-  cityId: number
-
-  @Column()
   territoryId: number
 
   @Column({ nullable: true })
