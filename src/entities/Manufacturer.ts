@@ -5,11 +5,8 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToOne,
-  OneToMany,
-  JoinColumn
+  OneToMany
 } from 'typeorm'
-import { City } from './City'
 import { Product } from './Product'
 
 @Entity()
@@ -34,9 +31,6 @@ export class Manufacturer extends BaseEntity {
 
   @Column()
   location: string
-
-  @Column()
-  cityId: number
 
   @Column({ nullable: true })
   logo: string

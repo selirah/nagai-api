@@ -24,7 +24,6 @@ router.post('/clients', authorization, async (req: Request, res: Response) => {
       businessEmail: inputs.businessEmail,
       phoneNumber: inputs.phoneNumber,
       coordinates: inputs.coordinates,
-      cityId: inputs.cityId,
       territoryId: inputs.territoryId,
       location: inputs.location,
       logo: inputs.logo
@@ -60,7 +59,6 @@ router.put(
         businessEmail: inputs.businessEmail,
         phoneNumber: inputs.phoneNumber,
         coordinates: inputs.coordinates,
-        cityId: inputs.cityId,
         territoryId: inputs.territoryId,
         location: inputs.location,
         logo: inputs.logo

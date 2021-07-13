@@ -7,58 +7,53 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
-  OneToMany,
-} from 'typeorm';
-import { City } from './City';
-import { Territory } from './Territory';
-import { Order } from './Order';
+  OneToMany
+} from 'typeorm'
+import { Territory } from './Territory'
+import { Order } from './Order'
 
 @Entity()
 export class Client extends BaseEntity {
   @PrimaryGeneratedColumn()
-  clientId: number;
+  clientId: number
 
   @Column()
-  businessName: string;
+  businessName: string
 
   @Column()
-  phoneNumber: string;
+  phoneNumber: string
 
   @Column()
-  businessEmail: string;
+  businessEmail: string
 
   @Column({ type: 'json', nullable: true })
   coordinates: {
-    lat: number;
-    lng: number;
-  };
+    lat: number
+    lng: number
+  }
 
   @Column()
-  location: string;
+  location: string
 
   @Column()
-  cityId: number;
+  cityId: number
 
   @Column()
-  territoryId: number;
+  territoryId: number
 
   @Column({ nullable: true })
-  logo: string;
-
-  @ManyToOne(() => City, (city) => city.clients)
-  @JoinColumn({ name: 'cityId' })
-  city: City;
+  logo: string
 
   @ManyToOne(() => Territory, (territory) => territory.clients)
   @JoinColumn({ name: 'territoryId' })
-  territory: Territory;
+  territory: Territory
 
   @OneToMany(() => Order, (order) => order.client)
-  orders: Order[];
+  orders: Order[]
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 }

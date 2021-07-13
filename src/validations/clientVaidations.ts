@@ -97,15 +97,6 @@ export const validateClient = (inputs: __Client__) => {
     ]
   }
 
-  if (validator.isEmpty(`${inputs.cityId}`)) {
-    return [
-      {
-        field: 'city',
-        message: 'City is requried'
-      }
-    ]
-  }
-
   if (validator.isEmpty(inputs.location)) {
     return [
       {

@@ -4,31 +4,22 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   ManyToOne,
-  OneToMany,
-  JoinColumn,
-} from 'typeorm';
-import { Region } from './Region';
-import { Manufacturer } from './Manufacturer';
-import { Client } from './Client';
+  JoinColumn
+} from 'typeorm'
+import { Region } from './Region'
 
 @Entity()
 export class City extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id!: number
 
   @Column()
-  city!: string;
+  city!: string
 
   @Column()
-  regionId: number;
+  regionId: number
 
   @ManyToOne(() => Region, (region) => region.cities)
   @JoinColumn({ name: 'regionId' })
-  region: Region;
-
-  @OneToMany(() => Manufacturer, (manufacturer) => manufacturer.city)
-  manufacturers: Manufacturer[];
-
-  @OneToMany(() => Client, (client) => client.city)
-  clients: Client[];
+  region: Region
 }
