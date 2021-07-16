@@ -9,7 +9,7 @@ import { __Order__ } from './models/__Order__'
 const main = async () => {
   await createConnection(ormconfig)
     .then((conn: Connection) => {
-      conn.runMigrations()
+      // conn.runMigrations()
       console.log('db connected: ', conn.isConnected)
     })
     .catch((err) => console.log(err))
