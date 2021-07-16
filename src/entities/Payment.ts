@@ -6,42 +6,42 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn,
-} from 'typeorm';
-import { Transaction } from './Transaction';
-import { User } from './User';
+  JoinColumn
+} from 'typeorm'
+import { Transaction } from './Transaction'
+import { User } from './User'
 
 @Entity()
 export class Payment extends BaseEntity {
   @PrimaryColumn()
-  paymentId: string;
+  id: string
 
   @Column()
-  transactionId: string;
+  transactionId: string
 
   @Column('decimal', { precision: 5, scale: 2 })
-  amount: number;
+  amount: number
 
   @Column()
-  payer: string;
+  payer: string
 
   @Column()
-  payerPhone: string;
+  payerPhone: string
 
   @Column()
-  payeeId: number;
+  payeeId: number
 
   @ManyToOne(() => Transaction, (transaction) => transaction.payments)
   @JoinColumn({ name: 'transactionId' })
-  transaction: Transaction;
+  transaction: Transaction
 
   @ManyToOne(() => User, (payee) => payee.payments)
   @JoinColumn({ name: 'payeeId' })
-  payee: User;
+  payee: User
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 }

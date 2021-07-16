@@ -7,35 +7,35 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn,
-} from 'typeorm';
-import { Order } from './Order';
-import { Payment } from './Payment';
+  JoinColumn
+} from 'typeorm'
+import { Order } from './Order'
+import { Payment } from './Payment'
 
 @Entity()
 export class Transaction extends BaseEntity {
   @PrimaryColumn()
-  transactionId: string;
+  id: string
 
   @Column({ unique: true })
-  orderId: string;
+  orderId: string
 
   @Column('decimal', { precision: 10, scale: 2 })
-  amount: number;
+  amount: number
 
   @Column('decimal', { precision: 10, scale: 2, default: 0.0 })
-  amountPaid: number;
+  amountPaid: number
 
   @OneToOne(() => Order)
   @JoinColumn({ name: 'orderId' })
-  order: Order;
+  order: Order
 
   @OneToMany(() => Payment, (payment) => payment.transaction)
-  payments: Payment[];
+  payments: Payment[]
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 }

@@ -19,13 +19,13 @@ router.post('/orders', authorization, async (req: Request, res: Response) => {
   }
 
   let order: __Order__
-  const orderId = moment(new Date()).format('YMDHHMMSS')
+  const id = moment(new Date()).format('YMDHHMMSS')
   const queryResult = await getConnection()
     .createQueryBuilder()
     .insert()
     .into(Order)
     .values({
-      orderId: orderId,
+      id: id,
       items: inputs.items,
       vat: inputs.vat,
       discount: inputs.discount,
@@ -56,8 +56,8 @@ router.post('/orders', authorization, async (req: Request, res: Response) => {
     .insert()
     .into(Transaction)
     .values({
-      transactionId: `TRX-${moment(new Date()).format('YMDHHMMSS')}`,
-      orderId: order.orderId,
+      id: `TRX-${moment(new Date()).format('YMDHHMMSS')}`,
+      orderId: order.id,
       amount: total,
       amountPaid: 0.0
     })
@@ -68,7 +68,7 @@ router.post('/orders', authorization, async (req: Request, res: Response) => {
   // // // send invoice to client
   // const client = await Client.findOne({ where: { clientId: inputs.clientId } });
   // if (client) {
-  //   const emailMessage = `<h2>Hello ${client.businessName}, your order ${orderId} has been placed successfully. Cheers</h2>`;
+  //   const emailMessage = `<h2>Hello ${client.businessName}, your order ${id} has been placed successfully. Cheers</h2>`;
   //   await sendEmail(client.businessEmail, emailMessage);
   // }
   return res.status(201).json(order)
@@ -95,7 +95,7 @@ router.put(
         discount: inputs.discount,
         clientId: inputs.clientId
       })
-      .where('"orderId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .execute()
@@ -106,7 +106,7 @@ router.put(
     const order = await getConnection()
       .getRepository(Order)
       .createQueryBuilder('order')
-      .where('"orderId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .getOne()

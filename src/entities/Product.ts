@@ -8,44 +8,44 @@ import {
   UpdateDateColumn,
   JoinColumn,
   OneToMany,
-  OneToOne,
-} from 'typeorm';
-import { Category } from './Category';
-import { Manufacturer } from './Manufacturer';
-import { Inventory } from './Inventory';
-import { InventoryTrail } from './InventoryTrail';
+  OneToOne
+} from 'typeorm'
+import { Category } from './Category'
+import { Manufacturer } from './Manufacturer'
+import { Inventory } from './Inventory'
+import { InventoryTrail } from './InventoryTrail'
 
 @Entity()
 export class Product extends BaseEntity {
   @PrimaryColumn()
-  productId!: string;
+  id!: string
 
   @Column()
-  productName: string;
+  productName: string
 
   @Column()
-  categoryId: number;
+  categoryId: number
 
   @Column()
-  manufacturerId: number;
+  manufacturerId: number
 
   @ManyToOne(() => Category, (category) => category.products)
   @JoinColumn({ name: 'categoryId' })
-  category: Category;
+  category: Category
 
   @ManyToOne(() => Manufacturer, (manufacturer) => manufacturer.products)
   @JoinColumn({ name: 'manufacturerId' })
-  manufacturer: Manufacturer;
+  manufacturer: Manufacturer
 
   @OneToOne(() => Inventory, (inventory) => inventory.product)
-  inventory: Inventory;
+  inventory: Inventory
 
   @OneToMany(() => InventoryTrail, (trail) => trail.product)
-  inventoryTrails: InventoryTrail[];
+  inventoryTrails: InventoryTrail[]
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 }

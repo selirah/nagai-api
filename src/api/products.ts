@@ -20,9 +20,7 @@ router.post('/products', authorization, async (req: Request, res: Response) => {
     .insert()
     .into(Product)
     .values({
-      productId: `${inputs.productName
-        .substring(0, 2)
-        .toUpperCase()}-${Date.now()}`,
+      id: `${inputs.productName.substring(0, 2).toUpperCase()}-${Date.now()}`,
       productName: inputs.productName,
       categoryId: inputs.categoryId,
       manufacturerId: inputs.manufacturerId
@@ -58,7 +56,7 @@ router.put(
         categoryId: inputs.categoryId,
         manufacturerId: inputs.manufacturerId
       })
-      .where('"productId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .execute()
@@ -69,7 +67,7 @@ router.put(
     const product = await getConnection()
       .getRepository(Product)
       .createQueryBuilder('product')
-      .where('"productId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .getOne()
@@ -107,7 +105,7 @@ router.delete(
       .createQueryBuilder()
       .delete()
       .from(Product)
-      .where('"productId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .execute()

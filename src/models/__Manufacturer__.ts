@@ -1,7 +1,7 @@
 import { __Product__ } from './__Product__'
 
 export class __Manufacturer__ {
-  manufacturerId: number
+  id: number
   name: string
   email: string
   phone: string

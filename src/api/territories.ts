@@ -44,7 +44,7 @@ router.put(
   async (req: Request, res: Response) => {
     const inputs: __Territory__ = req.body
     const errors = validateTerritory(inputs)
-    const territoryId: number = parseInt(req.params.id)
+    const id: number = parseInt(req.params.id)
 
     if (errors) {
       return res.status(400).json({ errors })
@@ -57,8 +57,8 @@ router.put(
         territoryName: inputs.territoryName,
         coordinates: inputs.coordinates
       })
-      .where('"territoryId" = :territoryId', {
-        territoryId: territoryId
+      .where('"id" = :id', {
+        id: id
       })
       .execute()
 
@@ -68,8 +68,8 @@ router.put(
     const territory = await getConnection()
       .getRepository(Territory)
       .createQueryBuilder('territory')
-      .where('"territoryId" = :territoryId', {
-        territoryId: territoryId
+      .where('"id" = :id', {
+        id: id
       })
       .getOne()
 
@@ -96,14 +96,14 @@ router.delete(
   '/territories/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const territoryId: number = parseInt(req.params.id)
+    const id: number = parseInt(req.params.id)
 
     const queryResult = await getConnection()
       .createQueryBuilder()
       .delete()
       .from(Territory)
-      .where('"territoryId" = :territoryId', {
-        territoryId: territoryId
+      .where('"id" = :id', {
+        id: id
       })
       .execute()
 

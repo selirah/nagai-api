@@ -47,8 +47,8 @@ router.post(
       .getRepository(Delivery)
       .createQueryBuilder('delivery')
       .innerJoinAndSelect('delivery.order', 'order')
-      .where('"deliveryId" = :deliveryId', {
-        deliveryId: delivery.deliveryId
+      .where('"id" = :id', {
+        id: delivery.id
       })
       .getOne()
 
@@ -79,7 +79,7 @@ router.put(
         isDelivered: inputs.isDelivered,
         reason: inputs.reason
       })
-      .where('"deliveryId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .execute()
@@ -98,8 +98,8 @@ router.put(
           where: { clientId: order.clientId }
         })
         if (client) {
-          const emailMessage = `<h2>Hello ${client.businessName}, your order ${order.orderId} has been successfully delivered. Cheers</h2>`
-          const smsMessage = `Hello ${client.businessName}, your order ${order.orderId} has been successfully delivered. Cheers`
+          const emailMessage = `<h2>Hello ${client.businessName}, your order ${order.id} has been successfully delivered. Cheers</h2>`
+          const smsMessage = `Hello ${client.businessName}, your order ${order.id} has been successfully delivered. Cheers`
           await sendEmail(client.businessEmail, emailMessage)
           await sendSMS(client.phoneNumber, smsMessage)
         }
@@ -110,7 +110,7 @@ router.put(
       .getRepository(Delivery)
       .createQueryBuilder('delivery')
       .innerJoinAndSelect('delivery.order', 'order')
-      .where('"deliveryId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .getOne()

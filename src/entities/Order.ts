@@ -6,35 +6,35 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn,
-} from 'typeorm';
-import { Client } from './Client';
-import { Item } from './Item';
+  JoinColumn
+} from 'typeorm'
+import { Client } from './Client'
+import { Item } from './Item'
 
 @Entity()
 export class Order extends BaseEntity {
   @PrimaryColumn()
-  orderId: string;
+  id: string
 
   @Column({ type: 'json' })
-  items: Item;
+  items: Item
 
   @Column('decimal', { precision: 10, scale: 2, default: 12.5 })
-  vat: number;
+  vat: number
 
   @Column('decimal', { precision: 10, scale: 2, default: 0.0 })
-  discount: number;
+  discount: number
 
   @Column()
-  clientId: number;
+  clientId: number
 
   @ManyToOne(() => Client, (client) => client.orders)
   @JoinColumn({ name: 'clientId' })
-  client: Client;
+  client: Client
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 }

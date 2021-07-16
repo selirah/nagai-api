@@ -26,7 +26,7 @@ router.post(
         .insert()
         .into(Inventory)
         .values({
-          inventoryId: `INV-${Date.now()}`,
+          id: `INV-${Date.now()}`,
           productId: inputs.productId,
           unit: inputs.unit,
           description: inputs.description,
@@ -90,7 +90,7 @@ router.put(
         reorderQuantity: inputs.reorderQuantity,
         reorderDate: inputs.reorderDate
       })
-      .where('"inventoryId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .execute()
@@ -113,7 +113,7 @@ router.put(
     const inventory = await getConnection()
       .getRepository(Inventory)
       .createQueryBuilder('inventory')
-      .where('"inventoryId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .getOne()
@@ -176,7 +176,7 @@ router.delete(
       .createQueryBuilder()
       .delete()
       .from(Inventory)
-      .where('"inventoryId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .execute()

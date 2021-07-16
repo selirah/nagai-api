@@ -45,7 +45,7 @@ router.put(
   async (req: Request, res: Response) => {
     const inputs: __Client__ = req.body
     const errors = validateClient(inputs)
-    const clientId: number = parseInt(req.params.id)
+    const id: number = parseInt(req.params.id)
 
     if (errors) {
       return res.status(400).json({ errors })
@@ -63,8 +63,8 @@ router.put(
         location: inputs.location,
         logo: inputs.logo
       })
-      .where('"clientId" = :clientId', {
-        clientId: clientId
+      .where('"id" = :id', {
+        id: id
       })
       .execute()
 
@@ -74,8 +74,8 @@ router.put(
     const client = await getConnection()
       .getRepository(Client)
       .createQueryBuilder('client')
-      .where('"clientId" = :clientId', {
-        clientId: clientId
+      .where('"id" = :id', {
+        id: id
       })
       .getOne()
 
@@ -101,14 +101,14 @@ router.delete(
   '/clients/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const clientId: number = parseInt(req.params.id)
+    const id: number = parseInt(req.params.id)
 
     const queryResult = await getConnection()
       .createQueryBuilder()
       .delete()
       .from(Client)
-      .where('"clientId" = :clientId', {
-        clientId: clientId
+      .where('"id" = :id', {
+        id: id
       })
       .execute()
 

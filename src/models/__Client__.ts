@@ -1,5 +1,5 @@
 export class __Client__ {
-  clientId: number
+  id: number
   businessName: string
   phoneNumber: string
   businessEmail: string

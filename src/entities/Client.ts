@@ -15,7 +15,7 @@ import { Order } from './Order'
 @Entity()
 export class Client extends BaseEntity {
   @PrimaryGeneratedColumn()
-  clientId: number
+  id: number
 
   @Column()
   businessName: string

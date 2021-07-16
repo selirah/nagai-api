@@ -50,7 +50,7 @@ router.put(
   async (req: Request, res: Response) => {
     const inputs: __Manufacturer__ = req.body
     const errors = validateManufacturer(inputs)
-    const manufacturerId: number = parseInt(req.params.id)
+    const id: number = parseInt(req.params.id)
 
     if (errors) {
       return res.status(400).json({ errors })
@@ -67,8 +67,8 @@ router.put(
         location: inputs.location,
         logo: inputs.logo
       })
-      .where('"manufacturerId" = :manufacturerId', {
-        manufacturerId: manufacturerId
+      .where('"id" = :id', {
+        id: id
       })
       .execute()
 
@@ -80,8 +80,8 @@ router.put(
       .createQueryBuilder('manufacturer')
       .leftJoinAndSelect('manufacturer.products', 'product')
       .orderBy('manufacturer."createdAt"', 'DESC')
-      .where('manufacturer."manufacturerId" = :manufacturerId', {
-        manufacturerId: manufacturerId
+      .where('manufacturer."id" = :id', {
+        id: id
       })
       .getOne()
 
@@ -112,14 +112,14 @@ router.delete(
   '/manufacturers/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const manufacturerId: number = parseInt(req.params.id)
+    const id: number = parseInt(req.params.id)
 
     const queryResult = await getConnection()
       .createQueryBuilder()
       .delete()
       .from(Manufacturer)
-      .where('"manufacturerId" = :manufacturerId', {
-        manufacturerId: manufacturerId
+      .where('"id" = :id', {
+        id: id
       })
       .execute()
 

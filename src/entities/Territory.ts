@@ -5,30 +5,30 @@ import {
   Column,
   OneToMany,
   CreateDateColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-import { Client } from './Client';
+  UpdateDateColumn
+} from 'typeorm'
+import { Client } from './Client'
 
 @Entity()
 export class Territory extends BaseEntity {
   @PrimaryGeneratedColumn()
-  territoryId: number;
+  id: number
 
   @Column()
-  territoryName: string;
+  territoryName: string
 
   @Column({ type: 'json' })
   coordinates: {
-    lat: number;
-    lng: number;
-  };
+    lat: number
+    lng: number
+  }
 
   @OneToMany(() => Client, (client) => client.territory)
-  clients: Client[];
+  clients: Client[]
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 }

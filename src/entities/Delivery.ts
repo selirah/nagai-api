@@ -7,49 +7,49 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
-  ManyToOne,
-} from 'typeorm';
-import { Order } from './Order';
-import { User } from './User';
+  ManyToOne
+} from 'typeorm'
+import { Order } from './Order'
+import { User } from './User'
 
 @Entity()
 export class Delivery extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
-  deliveryId: string;
+  id: string
 
   @Column()
-  orderId: string;
+  orderId: string
 
   @Column()
-  dispatchId: number;
+  dispatchId: number
 
   @Column()
-  agentId: number;
+  agentId: number
 
   @Column({ default: false })
-  isDelivered: boolean;
+  isDelivered: boolean
 
   @Column({ nullable: true })
-  deliveryDate: Date;
+  deliveryDate: Date
 
   @Column({ type: 'text', nullable: true })
-  reason: string;
+  reason: string
 
   @OneToOne(() => Order)
   @JoinColumn({ name: 'orderId' })
-  order: Order;
+  order: Order
 
   @ManyToOne(() => User, (user) => user.deliveries)
   @JoinColumn({ name: 'dispatchId' })
-  dispatch: User;
+  dispatch: User
 
   @ManyToOne(() => User, (user) => user.agents)
   @JoinColumn({ name: 'agentId' })
-  agent: User;
+  agent: User
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 }

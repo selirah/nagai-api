@@ -22,7 +22,7 @@ router.post('/payments', authorization, async (req: Request, res: Response) => {
     .insert()
     .into(Payment)
     .values({
-      paymentId: `PAY-${moment(new Date()).format('YMDHHMMSS')}`,
+      id: `PAY-${moment(new Date()).format('YMDHHMMSS')}`,
       transactionId: inputs.transactionId,
       amount: inputs.amount,
       payer: inputs.payer,
