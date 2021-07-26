@@ -5,6 +5,7 @@ import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
 import { validateManufacturer } from '../validations'
 import { __Manufacturer__ } from '../models/__Manufacturer__'
+import { sanitizePhone } from '../helper/functions'
 
 router.post(
   '/manufacturers',
@@ -25,7 +26,7 @@ router.post(
       .values({
         name: inputs.name,
         email: inputs.email,
-        phone: inputs.phone,
+        phone: sanitizePhone(inputs.phone),
         coordinates: inputs.coordinates,
         location: inputs.location,
         logo: inputs.logo
@@ -62,7 +63,7 @@ router.put(
       .set({
         name: inputs.name,
         email: inputs.email,
-        phone: inputs.phone,
+        phone: sanitizePhone(inputs.phone),
         coordinates: inputs.coordinates,
         location: inputs.location,
         logo: inputs.logo

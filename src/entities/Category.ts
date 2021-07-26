@@ -5,24 +5,24 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
-} from 'typeorm';
-import { Product } from './Product';
+  OneToMany
+} from 'typeorm'
+import { Product } from './Product'
 
 @Entity()
 export class Category extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id!: number
 
   @Column()
-  category!: string;
+  category!: string
 
   @OneToMany(() => Product, (product) => product.category)
-  products: Product[];
+  products: Product[]
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 }

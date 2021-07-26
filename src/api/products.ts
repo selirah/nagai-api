@@ -5,6 +5,7 @@ import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
 import { validateProduct } from '../validations'
 import { __Product__ } from '../models/__Product__'
+import { generateRandomNumbers } from '../helper/functions'
 
 router.post('/products', authorization, async (req: Request, res: Response) => {
   const inputs: __Product__ = req.body
@@ -14,14 +15,33 @@ router.post('/products', authorization, async (req: Request, res: Response) => {
     return res.status(400).json({ errors })
   }
 
+  const findOne = await Product.findOne({
+    where: {
+      productName: inputs.productName.toLowerCase(),
+      categoryId: inputs.categoryId
+    }
+  })
+
+  if (findOne) {
+    const errors = [
+      {
+        field: 'productName',
+        message: `Product ${inputs.productName.toUpperCase()} already exists`
+      }
+    ]
+    return res.status(400).json({ errors })
+  }
+
   let product: __Product__
   const queryResult = await getConnection()
     .createQueryBuilder()
     .insert()
     .into(Product)
     .values({
-      id: `${inputs.productName.substring(0, 2).toUpperCase()}-${Date.now()}`,
-      productName: inputs.productName,
+      id: `${inputs.productName
+        .substring(0, 3)
+        .toUpperCase()}${generateRandomNumbers()}`,
+      productName: inputs.productName.toLowerCase(),
       categoryId: inputs.categoryId,
       manufacturerId: inputs.manufacturerId
     })

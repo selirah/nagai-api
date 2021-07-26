@@ -17,7 +17,7 @@ import argon2 from 'argon2'
 import { getConnection } from 'typeorm'
 import moment from 'moment'
 import { isEmpty } from '../validations/isEmpty'
-import { sanitizePhone } from '../helper/functions'
+import { generateRandomNumbers, sanitizePhone } from '../helper/functions'
 
 router.post('/users/register', async (req: Request, res: Response) => {
   const options: __User__ = req.body
@@ -45,7 +45,7 @@ router.post('/users/register', async (req: Request, res: Response) => {
       .execute()
     user = result.raw[0]
     // send code to user on sms and email
-    const code = Math.floor(100000 + Math.random() * 900000)
+    const code = generateRandomNumbers()
     const expiry = new Date(moment().add(24, 'hours').toDate())
     const saveCode = await Code.create({
       user: user,
@@ -120,7 +120,7 @@ router.post('/users/resend-code', async (req: Request, res: Response) => {
     // for security reasons, let's pretend user email was correct
     return res.sendStatus(200)
   }
-  const pin = Math.floor(100000 + Math.random() * 900000)
+  const pin = generateRandomNumbers()
   const code = await Code.findOne({ where: { userId: user.id } })
   if (!code) {
     const expiry = new Date(moment().add(24, 'hours').toDate())
@@ -160,7 +160,7 @@ router.post('/users/reset-password', async (req: Request, res: Response) => {
     return res.sendStatus(200)
   }
 
-  const password = Math.floor(100000 + Math.random() * 900000)
+  const password = generateRandomNumbers()
   // const password = 'pass123'
   const hashedPassword = await argon2.hash(`${password}`)
   const update = await getConnection()
@@ -236,7 +236,7 @@ router.post('/users', authorization, async (req: Request, res: Response) => {
     return res.status(400).json({ errors })
   }
 
-  const password = Math.floor(100000 + Math.random() * 900000)
+  const password = generateRandomNumbers()
   const hashedPassword = await argon2.hash(`${password}`)
 
   let user: __User__ | undefined
