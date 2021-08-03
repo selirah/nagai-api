@@ -12,8 +12,8 @@ import {
 } from 'typeorm'
 import { Category } from './Category'
 import { Manufacturer } from './Manufacturer'
-import { Inventory } from './Inventory'
-import { InventoryTrail } from './InventoryTrail'
+import { Stock } from './Stock'
+import { StockTrail } from './StockTrail'
 
 @Entity()
 export class Product extends BaseEntity {
@@ -37,11 +37,11 @@ export class Product extends BaseEntity {
   @JoinColumn({ name: 'manufacturerId' })
   manufacturer: Manufacturer
 
-  @OneToOne(() => Inventory, (inventory) => inventory.product)
-  inventory: Inventory
+  @OneToOne(() => Stock, (stock) => stock.product)
+  stock: Stock
 
-  @OneToMany(() => InventoryTrail, (trail) => trail.product)
-  inventoryTrails: InventoryTrail[]
+  @OneToMany(() => StockTrail, (trail) => trail.product)
+  stockTrails: StockTrail[]
 
   @CreateDateColumn()
   createdAt: Date

@@ -18,7 +18,7 @@ router.post('/products', authorization, async (req: Request, res: Response) => {
   const findOne = await Product.findOne({
     where: {
       productName: inputs.productName.toLowerCase(),
-      categoryId: inputs.categoryId
+      manufacturerId: inputs.manufacturerId
     }
   })
 
@@ -26,21 +26,23 @@ router.post('/products', authorization, async (req: Request, res: Response) => {
     const errors = [
       {
         field: 'productName',
-        message: `Product ${inputs.productName.toUpperCase()} already exists`
+        message: `Product ${inputs.productName.toUpperCase()} already exists for this manufacturer`
       }
     ]
     return res.status(400).json({ errors })
   }
 
   let product: __Product__
+  const productId = `${inputs.productName
+    .substring(0, 3)
+    .toUpperCase()}${generateRandomNumbers()}`
+
   const queryResult = await getConnection()
     .createQueryBuilder()
     .insert()
     .into(Product)
     .values({
-      id: `${inputs.productName
-        .substring(0, 3)
-        .toUpperCase()}${generateRandomNumbers()}`,
+      id: productId,
       productName: inputs.productName.toLowerCase(),
       categoryId: inputs.categoryId,
       manufacturerId: inputs.manufacturerId
@@ -49,9 +51,11 @@ router.post('/products', authorization, async (req: Request, res: Response) => {
     .execute()
 
   product = queryResult.raw[0]
+
   if (!product) {
     return res.sendStatus(500)
   }
+  //TODO: add product to inventory
 
   return res.status(201).json(product)
 })
@@ -101,25 +105,59 @@ router.put(
 )
 
 router.get('/products', authorization, async (req: Request, res: Response) => {
-  const limit = req.query.limit !== undefined ? +req.query.limit : 100
-  const offset = req.query.offset !== undefined ? +req.query.offset : 0
+  const page = req.query.page !== undefined ? +req.query.page : 100
+  const skip = req.query.skip !== undefined ? +req.query.skip : 0
+  const category = req.query.category !== undefined ? +req.query.category : 0
+  const manufacturer =
+    req.query.manufacturer !== undefined ? +req.query.manufacturer : 0
 
-  const products = await getConnection()
-    .getRepository(Product)
-    .createQueryBuilder('products')
-    // .leftJoinAndSelect('products.inventory', 'inventory')
-    .skip(offset)
-    .take(limit)
-    .getMany()
-
-  return res.status(200).json(products)
+  if (category !== 0 && manufacturer === 0) {
+    const [products, count] = await getConnection()
+      .getRepository(Product)
+      .createQueryBuilder('products')
+      .leftJoinAndSelect('products.inventory', 'inventory')
+      .leftJoinAndSelect('products.category', 'category')
+      .leftJoinAndSelect('products.manufacturer', 'manufacturer')
+      .where('"categoryId" = :category_id', {
+        category_id: category
+      })
+      .skip(skip)
+      .take(page)
+      .getManyAndCount()
+    return res.status(200).json({ products, count })
+  } else if (category === 0 && manufacturer !== 0) {
+    const [products, count] = await getConnection()
+      .getRepository(Product)
+      .createQueryBuilder('products')
+      .leftJoinAndSelect('products.inventory', 'inventory')
+      .leftJoinAndSelect('products.category', 'category')
+      .leftJoinAndSelect('products.manufacturer', 'manufacturer')
+      .where('"manufacturerId" = :manufacturer_id', {
+        manufacturer_id: manufacturer
+      })
+      .skip(skip)
+      .take(page)
+      .getManyAndCount()
+    return res.status(200).json({ products, count })
+  } else {
+    const [products, count] = await getConnection()
+      .getRepository(Product)
+      .createQueryBuilder('products')
+      .leftJoinAndSelect('products.inventory', 'inventory')
+      .leftJoinAndSelect('products.category', 'category')
+      .leftJoinAndSelect('products.manufacturer', 'manufacturer')
+      .skip(skip)
+      .take(page)
+      .getManyAndCount()
+    return res.status(200).json({ products, count })
+  }
 })
 
 router.delete(
   '/products/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const id: number = parseInt(req.params.id)
+    const id: string = req.params.id
 
     const queryResult = await getConnection()
       .createQueryBuilder()

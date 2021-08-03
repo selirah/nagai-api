@@ -8,7 +8,7 @@ import {
   OneToMany
 } from 'typeorm'
 import { Delivery } from './Delivery'
-import { InventoryTrail } from './InventoryTrail'
+import { StockTrail } from './StockTrail'
 import { Payment } from './Payment'
 
 export enum UserRole {
@@ -46,8 +46,8 @@ export class User extends BaseEntity {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.ADMIN })
   role: string
 
-  @OneToMany(() => InventoryTrail, (trail) => trail.user)
-  inventoryTrails: InventoryTrail[]
+  @OneToMany(() => StockTrail, (trail) => trail.user)
+  stockTrails: StockTrail[]
 
   @OneToMany(() => Delivery, (delivery) => delivery.dispatch)
   deliveries: Delivery[]

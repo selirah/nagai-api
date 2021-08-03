@@ -1,12 +1,21 @@
 import validator from 'validator'
-import { __Inventory__ } from '../models/__Inventory__'
+import { __Stock__ } from '../models/__Stock__'
 
-export const validateInventory = (inputs: __Inventory__) => {
+export const validateStock = (inputs: __Stock__) => {
   if (validator.isEmpty(`${inputs.productId}`)) {
     return [
       {
         field: 'product',
         message: 'You must select a product'
+      }
+    ]
+  }
+
+  if (validator.isEmpty(`${inputs.sku}`)) {
+    return [
+      {
+        field: 'sku',
+        message: 'You must add the product sku'
       }
     ]
   }
@@ -25,6 +34,15 @@ export const validateInventory = (inputs: __Inventory__) => {
       {
         field: 'unitPrice',
         message: 'Unit price field is required'
+      }
+    ]
+  }
+
+  if (validator.isEmpty(`${inputs.quantityPurchased}`)) {
+    return [
+      {
+        field: 'quantityPurchased',
+        message: 'Quantity purchased field is required'
       }
     ]
   }
@@ -67,12 +85,12 @@ export const validateInventory = (inputs: __Inventory__) => {
   return null
 }
 
-export const productExists = (inputs: __Inventory__, error: any) => {
-  if (error.code === '23505' && error.detail.includes('productId')) {
+export const productExists = (inputs: __Stock__, error: any) => {
+  if (error.code === '23505' && error.detail.includes('sku')) {
     return [
       {
-        field: 'product',
-        message: `Product with ${inputs.productId} inventory exists. You can only update it`
+        field: 'sku',
+        message: `Product with sku ${inputs.sku} stock exists. You can only update it`
       }
     ]
   }
