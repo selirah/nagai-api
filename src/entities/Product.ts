@@ -7,8 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
-  OneToMany,
-  OneToOne
+  OneToMany
 } from 'typeorm'
 import { Category } from './Category'
 import { Manufacturer } from './Manufacturer'
@@ -37,8 +36,8 @@ export class Product extends BaseEntity {
   @JoinColumn({ name: 'manufacturerId' })
   manufacturer: Manufacturer
 
-  @OneToOne(() => Stock, (stock) => stock.product)
-  stock: Stock
+  @OneToMany(() => Stock, (stock) => stock.product)
+  stock: Stock[]
 
   @OneToMany(() => StockTrail, (trail) => trail.product)
   stockTrails: StockTrail[]

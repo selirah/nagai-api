@@ -6,8 +6,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
-  OneToOne,
-  OneToMany
+  OneToMany,
+  ManyToOne
 } from 'typeorm'
 import { Product } from './Product'
 import { StockTrail } from './StockTrail'
@@ -50,7 +50,7 @@ export class Stock extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   comments: string
 
-  @OneToOne(() => Product, (product) => product.stock)
+  @ManyToOne(() => Product, (product) => product.stock)
   @JoinColumn({ name: 'productId' })
   product: Product
 

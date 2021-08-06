@@ -1,7 +1,6 @@
-import { __Product__ } from './__Product__'
-import { __StockTrail__ } from './__StockTrail__'
-export class __Stock__ {
-  id: string
+export class __StockTrail__ {
+  id: number
+  stockId: string
   productId: string
   sku: string
   unit: string
@@ -12,8 +11,7 @@ export class __Stock__ {
   reorderLevel: number
   reorderQuantity: number
   reorderDate: Date
-  product: __Product__
-  stockTrails: __StockTrail__[]
+  userId: number
   comments: string
   createdAt: Date
   updatedAt: Date

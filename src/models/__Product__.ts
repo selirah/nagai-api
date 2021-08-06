@@ -1,5 +1,6 @@
 import { __Category__ } from './__Category__'
 import { __Manufacturer__ } from './__Manufacturer__'
+import { __Stock__ } from './__Stock__'
 
 export class __Product__ {
   id: string
@@ -8,6 +9,7 @@ export class __Product__ {
   manufacturerId: number
   category: __Category__
   manufacturer: __Manufacturer__
+  stock: __Stock__[]
   createdAt: Date
   updatedAt: Date
 }

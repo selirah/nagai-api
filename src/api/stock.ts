@@ -248,4 +248,4 @@ router.delete(
   }
 )
 
-export { router as inventories }
+export { router as stock }

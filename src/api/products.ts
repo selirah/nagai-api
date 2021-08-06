@@ -115,7 +115,7 @@ router.get('/products', authorization, async (req: Request, res: Response) => {
     const [products, count] = await getConnection()
       .getRepository(Product)
       .createQueryBuilder('products')
-      .leftJoinAndSelect('products.inventory', 'inventory')
+      .leftJoinAndSelect('products.stock', 'stock')
       .leftJoinAndSelect('products.category', 'category')
       .leftJoinAndSelect('products.manufacturer', 'manufacturer')
       .where('"categoryId" = :category_id', {
@@ -129,7 +129,7 @@ router.get('/products', authorization, async (req: Request, res: Response) => {
     const [products, count] = await getConnection()
       .getRepository(Product)
       .createQueryBuilder('products')
-      .leftJoinAndSelect('products.inventory', 'inventory')
+      .leftJoinAndSelect('products.stock', 'stock')
       .leftJoinAndSelect('products.category', 'category')
       .leftJoinAndSelect('products.manufacturer', 'manufacturer')
       .where('"manufacturerId" = :manufacturer_id', {
@@ -143,7 +143,7 @@ router.get('/products', authorization, async (req: Request, res: Response) => {
     const [products, count] = await getConnection()
       .getRepository(Product)
       .createQueryBuilder('products')
-      .leftJoinAndSelect('products.inventory', 'inventory')
+      .leftJoinAndSelect('products.stock', 'stock')
       .leftJoinAndSelect('products.category', 'category')
       .leftJoinAndSelect('products.manufacturer', 'manufacturer')
       .skip(skip)

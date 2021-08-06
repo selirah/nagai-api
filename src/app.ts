@@ -11,12 +11,13 @@ import {
   products,
   territories,
   clients,
-  inventories,
+  stock,
   orders,
   userTerritories,
   deliveries,
   transactions,
-  payments
+  payments,
+  stockTrails
 } from './api'
 const api: string = '/api/v1'
 import { passportMiddleware } from './middleware/passport'
@@ -40,12 +41,13 @@ app.use(api, categories)
 app.use(api, products)
 app.use(api, territories)
 app.use(api, clients)
-app.use(api, inventories)
+app.use(api, stock)
 app.use(api, orders)
 app.use(api, userTerritories)
 app.use(api, deliveries)
 app.use(api, transactions)
 app.use(api, payments)
+app.use(api, stockTrails)
 
 /**
  * Test route for websocket
