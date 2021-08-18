@@ -3,7 +3,7 @@ import { Request, Response } from 'express'
 import { Stock } from '../entities/Stock'
 import { StockTrail } from '../entities/StockTrail'
 import { authorization } from '../middleware/auth'
-import { getConnection } from 'typeorm'
+import { Brackets, getConnection } from 'typeorm'
 import { validateStock, productExists } from '../validations'
 import { __Stock__ } from '../models/__Stock__'
 import { __User__ } from '../models/__User__'
@@ -143,72 +143,27 @@ router.put('/stock/:id', authorization, async (req: Request, res: Response) => {
 router.get('/stock', authorization, async (req: Request, res: Response) => {
   const page = req.query.page !== undefined ? +req.query.page : 100
   const skip = req.query.skip !== undefined ? +req.query.skip : 0
-  const productId = req.query.productId
-  const sku = req.query.sku
+  const query = req.query.query
   const fromDate = req.query.fromDate
   const toDate = req.query.toDate
 
-  if (!isEmpty(productId) && !isEmpty(fromDate)) {
-    const [stock, count] = await getConnection()
-      .getRepository(Stock)
-      .createQueryBuilder('stock')
-      .leftJoinAndSelect('stock.product', 'product')
-      .leftJoinAndSelect('stock.stockTrails', 'trails')
-      .where('"productId" = :product_id', {
-        product_id: productId
-      })
-      .andWhere(`stock.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
-      .skip(skip)
-      .take(page)
-      .getManyAndCount()
-    return res.status(200).json({ stock, count })
-  } else if (!isEmpty(sku) && !isEmpty(fromDate)) {
-    const [stock, count] = await getConnection()
-      .getRepository(Stock)
-      .createQueryBuilder('stock')
-      .leftJoinAndSelect('stock.product', 'product')
-      .leftJoinAndSelect('stock.stockTrails', 'trails')
-      .where('"sku" = :sku', {
-        sku: sku
-      })
-      .andWhere(`stock.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
-      .skip(skip)
-      .take(page)
-      .getManyAndCount()
-    return res.status(200).json({ stock, count })
-  } else if (isEmpty(sku) && isEmpty(productId) && !isEmpty(fromDate)) {
+  if (!isEmpty(fromDate) && !isEmpty(toDate)) {
     const [stock, count] = await getConnection()
       .getRepository(Stock)
       .createQueryBuilder('stock')
       .leftJoinAndSelect('stock.product', 'product')
       .leftJoinAndSelect('stock.stockTrails', 'trails')
       .where(`stock.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
-      .skip(skip)
-      .take(page)
-      .getManyAndCount()
-    return res.status(200).json({ stock, count })
-  } else if (!isEmpty(productId) && isEmpty(fromDate)) {
-    const [stock, count] = await getConnection()
-      .getRepository(Stock)
-      .createQueryBuilder('stock')
-      .leftJoinAndSelect('stock.product', 'product')
-      .leftJoinAndSelect('stock.stockTrails', 'trails')
-      .where('"productId" = :product_id', {
-        product_id: productId
-      })
-      .skip(skip)
-      .take(page)
-      .getManyAndCount()
-    return res.status(200).json({ stock, count })
-  } else if (!isEmpty(sku) && isEmpty(fromDate)) {
-    const [stock, count] = await getConnection()
-      .getRepository(Stock)
-      .createQueryBuilder('stock')
-      .leftJoinAndSelect('stock.product', 'product')
-      .leftJoinAndSelect('stock.stockTrails', 'trails')
-      .where('"sku" = :sku', {
-        sku: sku
-      })
+      .andWhere(
+        new Brackets((sqb) => {
+          sqb.where('stock."productId" like :query', {
+            query: `%${query?.toString().toUpperCase()}%`
+          })
+          sqb.orWhere('stock."sku" like :query', {
+            query: `%${query?.toString().toUpperCase()}%`
+          })
+        })
+      )
       .skip(skip)
       .take(page)
       .getManyAndCount()
@@ -219,6 +174,12 @@ router.get('/stock', authorization, async (req: Request, res: Response) => {
       .createQueryBuilder('stock')
       .leftJoinAndSelect('stock.product', 'product')
       .leftJoinAndSelect('stock.stockTrails', 'trails')
+      .where('stock."productId" like :query', {
+        query: `%${query?.toString().toUpperCase()}%`
+      })
+      .orWhere('stock."sku" like :query', {
+        query: `%${query}%`
+      })
       .skip(skip)
       .take(page)
       .getManyAndCount()

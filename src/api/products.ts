@@ -175,4 +175,30 @@ router.delete(
   }
 )
 
+router.get(
+  '/products/search',
+  authorization,
+  async (req: Request, res: Response) => {
+    const query = req.query.q
+    let products: Product[] = []
+    try {
+      products = await getConnection()
+        .getRepository(Product)
+        .createQueryBuilder('products')
+        .leftJoinAndSelect('products.stock', 'stock')
+        .where('"productId" like :query', {
+          query: `%${query?.toString().toUpperCase()}%`
+        })
+        .orWhere('"productName" like :query', {
+          query: `%${query?.toString().toLowerCase()}%`
+        })
+        .getMany()
+    } catch (err: any) {
+      console.log(err)
+    }
+
+    return res.status(200).json(products)
+  }
+)
+
 export { router as products }
