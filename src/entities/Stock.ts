@@ -26,7 +26,7 @@ export class Stock extends BaseEntity {
   @Column()
   unit: string
 
-  @Column('decimal', { precision: 5, scale: 2 }) // price of single
+  @Column('decimal', { precision: 15, scale: 2 }) // price of single
   unitPrice: number
 
   @Column()
@@ -35,7 +35,7 @@ export class Stock extends BaseEntity {
   @Column() // total quantity (ones purchased + ones already there)
   quantityInStock: number
 
-  @Column('decimal', { precision: 5, scale: 2 }) // total amount (unit price * quantity in stock)
+  @Column('decimal', { precision: 15, scale: 2 }) // total amount (unit price * quantity in stock)
   stockValue: number
 
   @Column() // level to buy new stock

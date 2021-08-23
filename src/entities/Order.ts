@@ -19,10 +19,10 @@ export class Order extends BaseEntity {
   @Column({ type: 'json' })
   items: Item
 
-  @Column('decimal', { precision: 10, scale: 2, default: 12.5 })
+  @Column('decimal', { precision: 15, scale: 2, default: 12.5 })
   vat: number
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0.0 })
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
   discount: number
 
   @Column()

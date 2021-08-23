@@ -17,7 +17,6 @@ router.post('/stock', authorization, async (req: Request, res: Response) => {
   if (errors) {
     return res.status(400).json({ errors })
   }
-
   let stock: __Stock__ | undefined
   try {
     const queryResult = await getConnection()
@@ -35,39 +34,43 @@ router.post('/stock', authorization, async (req: Request, res: Response) => {
         stockValue: inputs.unitPrice * inputs.quantityPurchased,
         reorderLevel: inputs.reorderLevel,
         reorderQuantity: inputs.reorderQuantity,
-        reorderDate: inputs.reorderDate,
+        reorderDate: new Date(inputs.reorderDate),
         comments: inputs.comments
       })
       .returning('*')
       .execute()
-
     stock = queryResult.raw[0]
     if (!stock) {
       return res.sendStatus(500)
     }
-    // save stock trail
-    await StockTrail.create({
-      stockId: stock.id,
-      productId: inputs.productId,
-      sku: inputs.sku,
-      unit: inputs.unit,
-      unitPrice: inputs.unitPrice,
-      quantityPurchased: inputs.quantityPurchased,
-      amount: inputs.unitPrice * inputs.quantityPurchased,
-      quantityInStock: stock.quantityInStock,
-      stockValue: stock.stockValue,
-      reorderLevel: inputs.reorderLevel,
-      reorderQuantity: inputs.reorderQuantity,
-      reorderDate: inputs.reorderDate,
-      user: req.user
-    }).save()
+    try {
+      await StockTrail.create({
+        stockId: stock.id,
+        productId: inputs.productId,
+        sku: inputs.sku,
+        unit: inputs.unit,
+        unitPrice: inputs.unitPrice,
+        quantityPurchased: inputs.quantityPurchased,
+        amount: inputs.unitPrice * inputs.quantityPurchased,
+        quantityInStock: stock.quantityInStock,
+        stockValue: stock.stockValue,
+        reorderLevel: inputs.reorderLevel,
+        reorderQuantity: inputs.reorderQuantity,
+        reorderDate: new Date(inputs.reorderDate),
+        user: req.user
+      }).save()
+    } catch (err) {
+      console.log(err)
+    }
   } catch (err) {
+    console.log(err)
     const errors = productExists(inputs, err)
     if (errors) {
       return res.status(400).json({ errors })
     }
   }
-  return res.status(201).json(stock)
+
+  return res.sendStatus(201)
 })
 
 router.put('/stock/:id', authorization, async (req: Request, res: Response) => {
@@ -81,63 +84,56 @@ router.put('/stock/:id', authorization, async (req: Request, res: Response) => {
 
   let stock: __Stock__ | undefined
 
-  const queryResult = await getConnection()
-    .createQueryBuilder()
-    .update(Stock)
-    .set({
-      unit: inputs.unit,
-      unitPrice: inputs.unitPrice,
-      quantityPurchased: inputs.quantityPurchased,
-      quantityInStock: () => `"quantityInStock" + ${inputs.quantityPurchased}`,
-      stockValue: () => `"quantityInStock" * ${inputs.unitPrice}`,
-      reorderLevel: inputs.reorderLevel,
-      reorderQuantity: inputs.reorderQuantity,
-      reorderDate: inputs.reorderDate,
-      comments: inputs.comments
-    })
-    .where('"id" = :id', {
-      id: id
-    })
-    .returning('*')
-    .execute()
+  try {
+    const queryResult = await getConnection()
+      .createQueryBuilder()
+      .update(Stock)
+      .set({
+        unit: inputs.unit,
+        unitPrice: inputs.unitPrice,
+        quantityPurchased: inputs.quantityPurchased,
+        quantityInStock: () =>
+          `"quantityInStock" + ${inputs.quantityPurchased}`,
+        stockValue: () => `"quantityInStock" * ${inputs.unitPrice}`,
+        reorderLevel: inputs.reorderLevel,
+        reorderQuantity: inputs.reorderQuantity,
+        reorderDate: new Date(inputs.reorderDate),
+        comments: inputs.comments
+      })
+      .where('"id" = :id', {
+        id: id
+      })
+      .returning('*')
+      .execute()
 
-  // if (queryResult.affected !== 1) {
-  //   return res.sendStatus(500)
-  // }
-  stock = queryResult.raw[0]
-  if (!stock) {
-    return res.sendStatus(500)
+    stock = queryResult.raw[0]
+    if (!stock) {
+      return res.sendStatus(500)
+    }
+    try {
+      await StockTrail.create({
+        stockId: id,
+        productId: inputs.productId,
+        sku: inputs.sku,
+        unit: inputs.unit,
+        unitPrice: inputs.unitPrice,
+        quantityPurchased: inputs.quantityPurchased,
+        amount: inputs.unitPrice * inputs.quantityPurchased,
+        quantityInStock: stock.quantityInStock,
+        stockValue: stock.stockValue,
+        reorderLevel: inputs.reorderLevel,
+        reorderQuantity: inputs.reorderQuantity,
+        reorderDate: new Date(inputs.reorderDate),
+        user: req.user
+      }).save()
+    } catch (err) {
+      console.log(err)
+    }
+  } catch (err) {
+    console.log(err)
   }
 
-  await StockTrail.create({
-    stockId: id,
-    productId: inputs.productId,
-    sku: inputs.sku,
-    unit: inputs.unit,
-    unitPrice: inputs.unitPrice,
-    quantityPurchased: inputs.quantityPurchased,
-    amount: inputs.unitPrice * inputs.quantityPurchased,
-    quantityInStock: stock.quantityInStock,
-    stockValue: stock.stockValue,
-    reorderLevel: inputs.reorderLevel,
-    reorderQuantity: inputs.reorderQuantity,
-    reorderDate: inputs.reorderDate,
-    user: req.user
-  }).save()
-
-  // const inventory = await getConnection()
-  //   .getRepository(Inventory)
-  //   .createQueryBuilder('inventory')
-  //   .where('"id" = :id', {
-  //     id: id
-  //   })
-  //   .getOne()
-
-  // if (!inventory) {
-  //   return res.sendStatus(500)
-  // }
-
-  return res.status(200).json(stock)
+  return res.sendStatus(200)
 })
 
 router.get('/stock', authorization, async (req: Request, res: Response) => {
@@ -152,7 +148,6 @@ router.get('/stock', authorization, async (req: Request, res: Response) => {
       .getRepository(Stock)
       .createQueryBuilder('stock')
       .leftJoinAndSelect('stock.product', 'product')
-      .leftJoinAndSelect('stock.stockTrails', 'trails')
       .where(`stock.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
       .andWhere(
         new Brackets((sqb) => {
@@ -160,7 +155,7 @@ router.get('/stock', authorization, async (req: Request, res: Response) => {
             query: `%${query?.toString().toUpperCase()}%`
           })
           sqb.orWhere('stock."sku" like :query', {
-            query: `%${query?.toString().toUpperCase()}%`
+            query: `%${query}%`
           })
         })
       )
@@ -173,7 +168,6 @@ router.get('/stock', authorization, async (req: Request, res: Response) => {
       .getRepository(Stock)
       .createQueryBuilder('stock')
       .leftJoinAndSelect('stock.product', 'product')
-      .leftJoinAndSelect('stock.stockTrails', 'trails')
       .where('stock."productId" like :query', {
         query: `%${query?.toString().toUpperCase()}%`
       })
@@ -193,19 +187,23 @@ router.delete(
   async (req: Request, res: Response) => {
     const id: string = req.params.id
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .delete()
-      .from(Stock)
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(Stock)
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
-    return res.sendStatus(204)
+    return res.sendStatus(200)
   }
 )
 

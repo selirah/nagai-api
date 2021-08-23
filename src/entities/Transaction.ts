@@ -20,10 +20,10 @@ export class Transaction extends BaseEntity {
   @Column({ unique: true })
   orderId: string
 
-  @Column('decimal', { precision: 10, scale: 2 })
+  @Column('decimal', { precision: 15, scale: 2 })
   amount: number
 
-  @Column('decimal', { precision: 10, scale: 2, default: 0.0 })
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
   amountPaid: number
 
   @OneToOne(() => Order)

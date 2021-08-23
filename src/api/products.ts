@@ -2,7 +2,7 @@ import { router } from '../utils'
 import { Request, Response } from 'express'
 import { Product } from '../entities/Product'
 import { authorization } from '../middleware/auth'
-import { getConnection } from 'typeorm'
+import { getConnection, Brackets } from 'typeorm'
 import { validateProduct } from '../validations'
 import { __Product__ } from '../models/__Product__'
 import { generateRandomNumbers } from '../helper/functions'
@@ -32,32 +32,35 @@ router.post('/products', authorization, async (req: Request, res: Response) => {
     return res.status(400).json({ errors })
   }
 
-  let product: __Product__
+  let product: __Product__ | undefined
   const productId = `${inputs.productName
     .substring(0, 3)
     .toUpperCase()}${generateRandomNumbers()}`
 
-  const queryResult = await getConnection()
-    .createQueryBuilder()
-    .insert()
-    .into(Product)
-    .values({
-      id: productId,
-      productName: inputs.productName.toLowerCase(),
-      categoryId: inputs.categoryId,
-      manufacturerId: inputs.manufacturerId
-    })
-    .returning('*')
-    .execute()
+  try {
+    const queryResult = await getConnection()
+      .createQueryBuilder()
+      .insert()
+      .into(Product)
+      .values({
+        id: productId,
+        productName: inputs.productName.toLowerCase(),
+        categoryId: inputs.categoryId,
+        manufacturerId: inputs.manufacturerId
+      })
+      .returning('*')
+      .execute()
 
-  product = queryResult.raw[0]
+    product = queryResult.raw[0]
 
-  if (!product) {
-    return res.sendStatus(500)
+    if (!product) {
+      return res.sendStatus(500)
+    }
+  } catch (err) {
+    console.log(err)
   }
-  //TODO: add product to inventory
 
-  return res.status(201).json(product)
+  return res.sendStatus(201)
 })
 
 router.put(
@@ -72,35 +75,28 @@ router.put(
       return res.status(400).json({ errors })
     }
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .update(Product)
-      .set({
-        productName: inputs.productName,
-        categoryId: inputs.categoryId,
-        manufacturerId: inputs.manufacturerId
-      })
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .update(Product)
+        .set({
+          productName: inputs.productName,
+          categoryId: inputs.categoryId,
+          manufacturerId: inputs.manufacturerId
+        })
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
-    }
-    const product = await getConnection()
-      .getRepository(Product)
-      .createQueryBuilder('product')
-      .where('"id" = :id', {
-        id: id
-      })
-      .getOne()
-
-    if (!product) {
-      return res.sendStatus(500)
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
 
-    return res.status(200).json(product)
+    return res.sendStatus(200)
   }
 )
 
@@ -110,6 +106,7 @@ router.get('/products', authorization, async (req: Request, res: Response) => {
   const category = req.query.category !== undefined ? +req.query.category : 0
   const manufacturer =
     req.query.manufacturer !== undefined ? +req.query.manufacturer : 0
+  const query = req.query.query
 
   if (category !== 0 && manufacturer === 0) {
     const [products, count] = await getConnection()
@@ -121,6 +118,16 @@ router.get('/products', authorization, async (req: Request, res: Response) => {
       .where('"categoryId" = :category_id', {
         category_id: category
       })
+      .andWhere(
+        new Brackets((sqb) => {
+          sqb.where('products."id" like :query', {
+            query: `%${query?.toString().toUpperCase()}%`
+          })
+          sqb.orWhere('products."productName" like :query', {
+            query: `%${query?.toString().toLowerCase()}%`
+          })
+        })
+      )
       .skip(skip)
       .take(page)
       .getManyAndCount()
@@ -135,6 +142,16 @@ router.get('/products', authorization, async (req: Request, res: Response) => {
       .where('"manufacturerId" = :manufacturer_id', {
         manufacturer_id: manufacturer
       })
+      .andWhere(
+        new Brackets((sqb) => {
+          sqb.where('products."id" like :query', {
+            query: `%${query?.toString().toUpperCase()}%`
+          })
+          sqb.orWhere('products."productName" like :query', {
+            query: `%${query?.toString().toLowerCase()}%`
+          })
+        })
+      )
       .skip(skip)
       .take(page)
       .getManyAndCount()
@@ -146,6 +163,12 @@ router.get('/products', authorization, async (req: Request, res: Response) => {
       .leftJoinAndSelect('products.stock', 'stock')
       .leftJoinAndSelect('products.category', 'category')
       .leftJoinAndSelect('products.manufacturer', 'manufacturer')
+      .where('products."id" like :query', {
+        query: `%${query?.toString().toUpperCase()}%`
+      })
+      .orWhere('products."productName" like :query', {
+        query: `%${query}%`
+      })
       .skip(skip)
       .take(page)
       .getManyAndCount()
@@ -159,19 +182,23 @@ router.delete(
   async (req: Request, res: Response) => {
     const id: string = req.params.id
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .delete()
-      .from(Product)
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(Product)
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
-    return res.sendStatus(204)
+    return res.sendStatus(200)
   }
 )
 

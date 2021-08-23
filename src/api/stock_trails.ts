@@ -47,6 +47,32 @@ router.get(
   '/stock-trails/:id',
   authorization,
   async (req: Request, res: Response) => {
+    const id: string = req.params.id
+    const page = req.query.page !== undefined ? +req.query.page : 100
+    const skip = req.query.skip !== undefined ? +req.query.skip : 0
+    try {
+      const [stockTrails, count] = await getConnection()
+        .getRepository(StockTrail)
+        .createQueryBuilder('trails')
+        .leftJoinAndSelect('trails.user', 'user')
+        .where('"id" = :id', {
+          id: id
+        })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ stockTrails, count })
+    } catch (err) {
+      console.log(err)
+      return
+    }
+  }
+)
+
+router.get(
+  '/stock-trails/product/:id',
+  authorization,
+  async (req: Request, res: Response) => {
     const productId: string = req.params.id
     const page = req.query.page !== undefined ? +req.query.page : 100
     const skip = req.query.skip !== undefined ? +req.query.skip : 0

@@ -29,19 +29,19 @@ export class StockTrail extends BaseEntity {
   @Column()
   unit: string
 
-  @Column('decimal', { precision: 5, scale: 2 })
+  @Column('decimal', { precision: 15, scale: 2 })
   unitPrice: number
 
   @Column()
   quantityPurchased: number
 
-  @Column('decimal', { precision: 5, scale: 2 })
+  @Column('decimal', { precision: 15, scale: 2 })
   amount: number
 
   @Column()
   quantityInStock: number
 
-  @Column('decimal', { precision: 5, scale: 2 })
+  @Column('decimal', { precision: 15, scale: 2 })
   stockValue: number
 
   @Column()

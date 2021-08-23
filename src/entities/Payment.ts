@@ -19,7 +19,7 @@ export class Payment extends BaseEntity {
   @Column()
   transactionId: string
 
-  @Column('decimal', { precision: 5, scale: 2 })
+  @Column('decimal', { precision: 15, scale: 2 })
   amount: number
 
   @Column()

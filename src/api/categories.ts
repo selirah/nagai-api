@@ -34,24 +34,28 @@ router.post(
     }
 
     let category: __Category__
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .insert()
-      .into(Category)
-      .values({
-        category: inputs.category.toLowerCase()
-      })
-      .returning('*')
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Category)
+        .values({
+          category: inputs.category.toLowerCase()
+        })
+        .returning('*')
+        .execute()
 
-    category = queryResult.raw[0]
-    if (!category) {
-      return res.sendStatus(500)
+      category = queryResult.raw[0]
+      if (!category) {
+        return res.sendStatus(500)
+      }
+
+      category.products = []
+    } catch (err) {
+      console.log(err)
     }
 
-    category.products = []
-
-    return res.status(201).json(category)
+    return res.sendStatus(201)
   }
 )
 
@@ -67,31 +71,26 @@ router.put(
       return res.status(400).json({ errors })
     }
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .update(Category)
-      .set({
-        category: inputs.category
-      })
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .update(Category)
+        .set({
+          category: inputs.category
+        })
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
-    const category = await getConnection()
-      .getRepository(Category)
-      .createQueryBuilder('category')
-      .leftJoinAndSelect('category.products', 'product')
-      .orderBy('category."createdAt"', 'DESC')
-      .where('category."id" = :id', {
-        id: id
-      })
-      .getOne()
 
-    return res.status(200).json(category)
+    return res.sendStatus(200)
   }
 )
 
@@ -112,19 +111,23 @@ router.delete(
   async (req: Request, res: Response) => {
     const id: number = parseInt(req.params.id)
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .delete()
-      .from(Category)
-      .where('id = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(Category)
+        .where('id = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
-    return res.sendStatus(204)
+    return res.sendStatus(200)
   }
 )
 
