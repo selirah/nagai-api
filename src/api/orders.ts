@@ -19,17 +19,17 @@ router.post('/orders', authorization, async (req: Request, res: Response) => {
   }
 
   let order: __Order__
-  const id = moment(new Date()).format('YMDHHMMSS')
+  // const id = moment(new Date()).format('YMDHHMMSS')
   const queryResult = await getConnection()
     .createQueryBuilder()
     .insert()
     .into(Order)
     .values({
-      id: id,
-      items: inputs.items,
-      vat: inputs.vat,
-      discount: inputs.discount,
-      clientId: inputs.clientId
+      // id: id,
+      // items: inputs.items,
+      // vat: inputs.vat,
+      // discount: inputs.discount,
+      // clientId: inputs.clientId
     })
     .returning('*')
     .execute()
@@ -90,10 +90,10 @@ router.put(
       .createQueryBuilder()
       .update(Order)
       .set({
-        items: inputs.items,
-        vat: inputs.vat,
-        discount: inputs.discount,
-        clientId: inputs.clientId
+        // items: inputs.items,
+        // vat: inputs.vat,
+        // discount: inputs.discount,
+        // clientId: inputs.clientId
       })
       .where('"id" = :id', {
         id: id

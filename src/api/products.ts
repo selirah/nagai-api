@@ -108,71 +108,76 @@ router.get('/products', authorization, async (req: Request, res: Response) => {
     req.query.manufacturer !== undefined ? +req.query.manufacturer : 0
   const query = req.query.query
 
-  if (category !== 0 && manufacturer === 0) {
-    const [products, count] = await getConnection()
-      .getRepository(Product)
-      .createQueryBuilder('products')
-      .leftJoinAndSelect('products.stock', 'stock')
-      .leftJoinAndSelect('products.category', 'category')
-      .leftJoinAndSelect('products.manufacturer', 'manufacturer')
-      .where('"categoryId" = :category_id', {
-        category_id: category
-      })
-      .andWhere(
-        new Brackets((sqb) => {
-          sqb.where('products."id" like :query', {
-            query: `%${query?.toString().toUpperCase()}%`
-          })
-          sqb.orWhere('products."productName" like :query', {
-            query: `%${query?.toString().toLowerCase()}%`
-          })
+  try {
+    if (category !== 0 && manufacturer === 0) {
+      const [products, count] = await getConnection()
+        .getRepository(Product)
+        .createQueryBuilder('products')
+        .leftJoinAndSelect('products.stock', 'stock')
+        .leftJoinAndSelect('products.category', 'category')
+        .leftJoinAndSelect('products.manufacturer', 'manufacturer')
+        .where('"categoryId" = :category_id', {
+          category_id: category
         })
-      )
-      .skip(skip)
-      .take(page)
-      .getManyAndCount()
-    return res.status(200).json({ products, count })
-  } else if (category === 0 && manufacturer !== 0) {
-    const [products, count] = await getConnection()
-      .getRepository(Product)
-      .createQueryBuilder('products')
-      .leftJoinAndSelect('products.stock', 'stock')
-      .leftJoinAndSelect('products.category', 'category')
-      .leftJoinAndSelect('products.manufacturer', 'manufacturer')
-      .where('"manufacturerId" = :manufacturer_id', {
-        manufacturer_id: manufacturer
-      })
-      .andWhere(
-        new Brackets((sqb) => {
-          sqb.where('products."id" like :query', {
-            query: `%${query?.toString().toUpperCase()}%`
+        .andWhere(
+          new Brackets((sqb) => {
+            sqb.where('products."id" like :query', {
+              query: `%${query?.toString().toUpperCase()}%`
+            })
+            sqb.orWhere('products."productName" like :query', {
+              query: `%${query?.toString().toLowerCase()}%`
+            })
           })
-          sqb.orWhere('products."productName" like :query', {
-            query: `%${query?.toString().toLowerCase()}%`
-          })
+        )
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ products, count })
+    } else if (category === 0 && manufacturer !== 0) {
+      const [products, count] = await getConnection()
+        .getRepository(Product)
+        .createQueryBuilder('products')
+        .leftJoinAndSelect('products.stock', 'stock')
+        .leftJoinAndSelect('products.category', 'category')
+        .leftJoinAndSelect('products.manufacturer', 'manufacturer')
+        .where('"manufacturerId" = :manufacturer_id', {
+          manufacturer_id: manufacturer
         })
-      )
-      .skip(skip)
-      .take(page)
-      .getManyAndCount()
-    return res.status(200).json({ products, count })
-  } else {
-    const [products, count] = await getConnection()
-      .getRepository(Product)
-      .createQueryBuilder('products')
-      .leftJoinAndSelect('products.stock', 'stock')
-      .leftJoinAndSelect('products.category', 'category')
-      .leftJoinAndSelect('products.manufacturer', 'manufacturer')
-      .where('products."id" like :query', {
-        query: `%${query?.toString().toUpperCase()}%`
-      })
-      .orWhere('products."productName" like :query', {
-        query: `%${query}%`
-      })
-      .skip(skip)
-      .take(page)
-      .getManyAndCount()
-    return res.status(200).json({ products, count })
+        .andWhere(
+          new Brackets((sqb) => {
+            sqb.where('products."id" like :query', {
+              query: `%${query?.toString().toUpperCase()}%`
+            })
+            sqb.orWhere('products."productName" like :query', {
+              query: `%${query?.toString().toLowerCase()}%`
+            })
+          })
+        )
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ products, count })
+    } else {
+      const [products, count] = await getConnection()
+        .getRepository(Product)
+        .createQueryBuilder('products')
+        .leftJoinAndSelect('products.stock', 'stock')
+        .leftJoinAndSelect('products.category', 'category')
+        .leftJoinAndSelect('products.manufacturer', 'manufacturer')
+        .where('products."id" like :query', {
+          query: `%${query?.toString().toUpperCase()}%`
+        })
+        .orWhere('products."productName" like :query', {
+          query: `%${query}%`
+        })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ products, count })
+    }
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
   }
 })
 
@@ -220,11 +225,11 @@ router.get(
           query: `%${query?.toString().toLowerCase()}%`
         })
         .getMany()
+      return res.status(200).json(products)
     } catch (err: any) {
       console.log(err)
+      return res.sendStatus(500)
     }
-
-    return res.status(200).json(products)
   }
 )
 

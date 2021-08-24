@@ -5,11 +5,13 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-  OneToMany
+  OneToMany,
+  ManyToOne
 } from 'typeorm'
 import { Delivery } from './Delivery'
 import { StockTrail } from './StockTrail'
 import { Payment } from './Payment'
+import { Territory } from './Territory'
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -57,6 +59,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Payment, (payment) => payment.payee)
   payments: Payment[]
+
+  @ManyToOne(() => Territory, (territory) => territory.users)
+  territory: Territory
 
   @CreateDateColumn()
   createdAt: Date

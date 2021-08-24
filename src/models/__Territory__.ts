@@ -1,10 +1,11 @@
 export class __Territory__ {
   id: number
-  territoryName: string
+  locality: string
   coordinates: {
     lat: number
     lng: number
   }
+  regionId: number
   createdAt: Date
   updatedAt: Date
 }

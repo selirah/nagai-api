@@ -1,7 +1,7 @@
 import validator from 'validator'
-import { __Client__ } from '../models/__Client__'
+import { __Outlet__ } from '../models/__Outlet__'
 
-export const validateClient = (inputs: __Client__) => {
+export const validateClient = (inputs: __Outlet__) => {
   if (validator.isEmpty(inputs.businessName)) {
     return [
       {

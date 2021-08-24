@@ -2,7 +2,7 @@ import { router, sendEmail, sendSMS } from '../utils'
 import { Request, Response } from 'express'
 import { Delivery } from '../entities/Delivery'
 import { Order } from '../entities/Order'
-import { Client } from '../entities/Client'
+import { Outlet } from '../entities/Outlet'
 import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
 import { validateDelivery } from '../validations'
@@ -94,14 +94,14 @@ router.put(
         where: { orderId: inputs.orderId }
       })
       if (order) {
-        const client = await Client.findOne({
-          where: { clientId: order.clientId }
+        const outlet = await Outlet.findOne({
+          where: { outletId: order.outletId }
         })
-        if (client) {
-          const emailMessage = `<h2>Hello ${client.businessName}, your order ${order.id} has been successfully delivered. Cheers</h2>`
-          const smsMessage = `Hello ${client.businessName}, your order ${order.id} has been successfully delivered. Cheers`
-          await sendEmail(client.businessEmail, emailMessage)
-          await sendSMS(client.phoneNumber, smsMessage)
+        if (outlet) {
+          const emailMessage = `<h2>Hello ${outlet.outletName}, your order ${order.id} has been successfully delivered. Cheers</h2>`
+          const smsMessage = `Hello ${outlet.outletName}, your order ${order.id} has been successfully delivered. Cheers`
+          await sendEmail(outlet.email, emailMessage)
+          await sendSMS(outlet.mobile, smsMessage)
         }
       }
     }

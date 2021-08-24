@@ -38,7 +38,7 @@ router.get(
       }
     } catch (err) {
       console.log(err)
-      return
+      return res.sendStatus(500)
     }
   }
 )
@@ -81,7 +81,7 @@ router.get(
       }
     } catch (err) {
       console.log(err)
-      return
+      return res.sendStatus(500)
     }
   }
 )
@@ -124,7 +124,7 @@ router.get(
       }
     } catch (err) {
       console.log(err)
-      return
+      return res.sendStatus(500)
     }
   }
 )

@@ -8,7 +8,7 @@ import {
   UpdateDateColumn,
   JoinColumn
 } from 'typeorm'
-import { Client } from './Client'
+import { Outlet } from './Outlet'
 import { Item } from './Item'
 
 @Entity()
@@ -26,11 +26,11 @@ export class Order extends BaseEntity {
   discount: number
 
   @Column()
-  clientId: number
+  outletId: number
 
-  @ManyToOne(() => Client, (client) => client.orders)
-  @JoinColumn({ name: 'clientId' })
-  client: Client
+  @ManyToOne(() => Outlet, (outlet) => outlet.orders)
+  @JoinColumn({ name: 'outletId' })
+  outlet: Outlet
 
   @CreateDateColumn()
   createdAt: Date

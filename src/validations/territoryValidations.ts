@@ -2,20 +2,20 @@ import validator from 'validator'
 import { __Territory__ } from '../models/__Territory__'
 
 export const validateTerritory = (inputs: __Territory__) => {
-  if (validator.isEmpty(inputs.territoryName)) {
+  if (validator.isEmpty(inputs.locality)) {
     return [
       {
-        field: 'territoryName',
-        message: 'Name of territory is required'
+        field: 'locality',
+        message: 'Locality name of territory is required'
       }
     ]
   }
 
-  if (!validator.isLength(inputs.territoryName, { min: 2 })) {
+  if (!validator.isLength(inputs.locality, { min: 2 })) {
     return [
       {
-        field: 'territoryName',
-        message: 'Territory name must have a minimum of 2 characters'
+        field: 'locality',
+        message: 'Locality name must have a minimum of 2 characters'
       }
     ]
   }

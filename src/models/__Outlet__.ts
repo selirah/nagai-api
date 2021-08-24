@@ -1,4 +1,4 @@
-export class __Client__ {
+export class __Outlet__ {
   id: number
   businessName: string
   phoneNumber: string

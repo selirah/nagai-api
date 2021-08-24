@@ -5,9 +5,13 @@ import {
   Column,
   OneToMany,
   CreateDateColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn
 } from 'typeorm'
-import { Client } from './Client'
+import { Outlet } from './Outlet'
+import { User } from './User'
+import { Region } from './Region'
 
 @Entity()
 export class Territory extends BaseEntity {
@@ -15,7 +19,7 @@ export class Territory extends BaseEntity {
   id: number
 
   @Column()
-  territoryName: string
+  locality: string
 
   @Column({ type: 'json' })
   coordinates: {
@@ -23,8 +27,18 @@ export class Territory extends BaseEntity {
     lng: number
   }
 
-  @OneToMany(() => Client, (client) => client.territory)
-  clients: Client[]
+  @Column()
+  regionId: number
+
+  @ManyToOne(() => Region, (region) => region.territories)
+  @JoinColumn({ name: 'regionId' })
+  region: Region
+
+  @OneToMany(() => Outlet, (outlet) => outlet.territory)
+  outlets: Outlet[]
+
+  @OneToMany(() => User, (user) => user.territory)
+  users: User[]
 
   @CreateDateColumn()
   createdAt: Date

@@ -1,32 +1,32 @@
 import { router } from '../utils'
 import { Request, Response } from 'express'
-import { Client } from '../entities/Client'
+import { Outlet } from '../entities/Outlet'
 import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
 import { validateClient } from '../validations'
-import { __Client__ } from '../models/__Client__'
+import { __Outlet__ } from '../models/__Outlet__'
 
-router.post('/clients', authorization, async (req: Request, res: Response) => {
-  const inputs: __Client__ = req.body
+router.post('/outlets', authorization, async (req: Request, res: Response) => {
+  const inputs: __Outlet__ = req.body
   const errors = validateClient(inputs)
 
   if (errors) {
     return res.status(400).json({ errors })
   }
 
-  let client: __Client__
+  let client: __Outlet__
   const queryResult = await getConnection()
     .createQueryBuilder()
     .insert()
-    .into(Client)
+    .into(Outlet)
     .values({
-      businessName: inputs.businessName,
-      businessEmail: inputs.businessEmail,
-      phoneNumber: inputs.phoneNumber,
-      coordinates: inputs.coordinates,
-      territoryId: inputs.territoryId,
-      location: inputs.location,
-      logo: inputs.logo
+      // businessName: inputs.businessName,
+      // businessEmail: inputs.businessEmail,
+      // phoneNumber: inputs.phoneNumber,
+      // coordinates: inputs.coordinates,
+      // territoryId: inputs.territoryId,
+      // location: inputs.location,
+      // logo: inputs.logo
     })
     .returning('*')
     .execute()
@@ -40,10 +40,10 @@ router.post('/clients', authorization, async (req: Request, res: Response) => {
 })
 
 router.put(
-  '/clients/:id',
+  '/outlets/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const inputs: __Client__ = req.body
+    const inputs: __Outlet__ = req.body
     const errors = validateClient(inputs)
     const id: number = parseInt(req.params.id)
 
@@ -53,15 +53,15 @@ router.put(
 
     const queryResult = await getConnection()
       .createQueryBuilder()
-      .update(Client)
+      .update(Outlet)
       .set({
-        businessName: inputs.businessName,
-        businessEmail: inputs.businessEmail,
-        phoneNumber: inputs.phoneNumber,
-        coordinates: inputs.coordinates,
-        territoryId: inputs.territoryId,
-        location: inputs.location,
-        logo: inputs.logo
+        // businessName: inputs.businessName,
+        // businessEmail: inputs.businessEmail,
+        // phoneNumber: inputs.phoneNumber,
+        // coordinates: inputs.coordinates,
+        // territoryId: inputs.territoryId,
+        // location: inputs.location,
+        // logo: inputs.logo
       })
       .where('"id" = :id', {
         id: id
@@ -72,7 +72,7 @@ router.put(
       return res.sendStatus(500)
     }
     const client = await getConnection()
-      .getRepository(Client)
+      .getRepository(Outlet)
       .createQueryBuilder('client')
       .where('"id" = :id', {
         id: id
@@ -87,9 +87,9 @@ router.put(
   }
 )
 
-router.get('/clients', async (_: Request, res: Response) => {
+router.get('/outlets', async (_: Request, res: Response) => {
   const clients = await getConnection()
-    .getRepository(Client)
+    .getRepository(Outlet)
     .createQueryBuilder('clients')
     .orderBy('clients."createdAt"', 'DESC')
     .getMany()
@@ -98,7 +98,7 @@ router.get('/clients', async (_: Request, res: Response) => {
 })
 
 router.delete(
-  '/clients/:id',
+  '/outlets/:id',
   authorization,
   async (req: Request, res: Response) => {
     const id: number = parseInt(req.params.id)
@@ -106,7 +106,7 @@ router.delete(
     const queryResult = await getConnection()
       .createQueryBuilder()
       .delete()
-      .from(Client)
+      .from(Outlet)
       .where('"id" = :id', {
         id: id
       })

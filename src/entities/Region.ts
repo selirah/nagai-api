@@ -3,24 +3,28 @@ import {
   Column,
   Entity,
   PrimaryGeneratedColumn,
-  OneToMany,
-} from 'typeorm';
-import { City } from './City';
+  OneToMany
+} from 'typeorm'
+import { City } from './City'
+import { Territory } from './Territory'
 
 @Entity()
 export class Region extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id!: number
 
   @Column()
-  region!: string;
+  region!: string
 
   @Column()
-  abbreviation!: string;
+  abbreviation!: string
 
   @Column()
-  capital!: string;
+  capital!: string
 
   @OneToMany(() => City, (city) => city.region)
-  cities: City[];
+  cities: City[]
+
+  @OneToMany(() => Territory, (territories) => territories.region)
+  territories: Territory[]
 }

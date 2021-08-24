@@ -18,23 +18,28 @@ router.post(
     }
 
     let territory: __Territory__
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .insert()
-      .into(Territory)
-      .values({
-        territoryName: inputs.territoryName,
-        coordinates: inputs.coordinates
-      })
-      .returning('*')
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Territory)
+        .values({
+          locality: inputs.locality.toLowerCase(),
+          coordinates: inputs.coordinates,
+          regionId: inputs.regionId
+        })
+        .returning('*')
+        .execute()
 
-    territory = queryResult.raw[0]
-    if (!territory) {
-      return res.sendStatus(500)
+      territory = queryResult.raw[0]
+      if (!territory) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
 
-    return res.status(201).json(territory)
+    return res.sendStatus(201)
   }
 )
 
@@ -50,46 +55,74 @@ router.put(
       return res.status(400).json({ errors })
     }
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .update(Territory)
-      .set({
-        territoryName: inputs.territoryName,
-        coordinates: inputs.coordinates
-      })
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .update(Territory)
+        .set({
+          locality: inputs.locality.toLowerCase(),
+          coordinates: inputs.coordinates,
+          regionId: inputs.regionId
+        })
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
-    }
-    const territory = await getConnection()
-      .getRepository(Territory)
-      .createQueryBuilder('territory')
-      .where('"id" = :id', {
-        id: id
-      })
-      .getOne()
-
-    if (!territory) {
-      return res.sendStatus(500)
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
 
-    return res.status(200).json(territory)
+    return res.sendStatus(200)
   }
 )
 
-router.get('/territories', async (_: Request, res: Response) => {
-  const territories = await getConnection()
-    .getRepository(Territory)
-    .createQueryBuilder('territories')
-    .leftJoinAndSelect('territories.clients', 'clients')
-    .orderBy('territories."createdAt"', 'DESC')
-    .getMany()
+router.get('/territories', async (req: Request, res: Response) => {
+  const page = req.query.page !== undefined ? +req.query.page : 100
+  const skip = req.query.skip !== undefined ? +req.query.skip : 0
+  const region = req.query.region !== undefined ? +req.query.region : 0
+  const query = req.query.query
 
-  return res.status(200).json(territories)
+  try {
+    if (region !== 0) {
+      const [territories, count] = await getConnection()
+        .getRepository(Territory)
+        .createQueryBuilder('territories')
+        .leftJoinAndSelect('territories.outlets', 'outlets')
+        .leftJoinAndSelect('territories.users', 'users')
+        .leftJoinAndSelect('territories.region', 'region')
+        .where('territories."regionId" = :region_id', {
+          region_id: region
+        })
+        .andWhere('territories."locality" like :query', {
+          query: `%${query?.toString().toLowerCase()}%`
+        })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ territories, count })
+    } else {
+      const [territories, count] = await getConnection()
+        .getRepository(Territory)
+        .createQueryBuilder('territories')
+        .leftJoinAndSelect('territories.outlets', 'outlets')
+        .leftJoinAndSelect('territories.users', 'users')
+        .leftJoinAndSelect('territories.region', 'region')
+        .where('territories."locality" like :query', {
+          query: `%${query?.toString().toLowerCase()}%`
+        })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ territories, count })
+    }
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
+  }
 })
 
 router.delete(
@@ -110,7 +143,7 @@ router.delete(
     if (queryResult.affected !== 1) {
       return res.sendStatus(500)
     }
-    return res.sendStatus(204)
+    return res.sendStatus(200)
   }
 )
 
