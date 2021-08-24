@@ -94,7 +94,8 @@ router.put('/stock/:id', authorization, async (req: Request, res: Response) => {
         quantityPurchased: inputs.quantityPurchased,
         quantityInStock: () =>
           `"quantityInStock" + ${inputs.quantityPurchased}`,
-        stockValue: () => `"quantityInStock" * ${inputs.unitPrice}`,
+        stockValue: () =>
+          `"stockValue" + ${inputs.unitPrice * inputs.quantityPurchased}`,
         reorderLevel: inputs.reorderLevel,
         reorderQuantity: inputs.reorderQuantity,
         reorderDate: new Date(inputs.reorderDate),

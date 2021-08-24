@@ -50,18 +50,35 @@ router.get(
     const id: string = req.params.id
     const page = req.query.page !== undefined ? +req.query.page : 100
     const skip = req.query.skip !== undefined ? +req.query.skip : 0
+    const fromDate = req.query.fromDate
+    const toDate = req.query.toDate
     try {
-      const [stockTrails, count] = await getConnection()
-        .getRepository(StockTrail)
-        .createQueryBuilder('trails')
-        .leftJoinAndSelect('trails.user', 'user')
-        .where('"id" = :id', {
-          id: id
-        })
-        .skip(skip)
-        .take(page)
-        .getManyAndCount()
-      return res.status(200).json({ stockTrails, count })
+      if (!isEmpty(fromDate) && !isEmpty(toDate)) {
+        const [stockTrails, count] = await getConnection()
+          .getRepository(StockTrail)
+          .createQueryBuilder('trails')
+          .leftJoinAndSelect('trails.user', 'user')
+          .where('"stockId" = :id', {
+            id: id
+          })
+          .andWhere(`trails.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
+          .skip(skip)
+          .take(page)
+          .getManyAndCount()
+        return res.status(200).json({ stockTrails, count })
+      } else {
+        const [stockTrails, count] = await getConnection()
+          .getRepository(StockTrail)
+          .createQueryBuilder('trails')
+          .leftJoinAndSelect('trails.user', 'user')
+          .where('"stockId" = :id', {
+            id: id
+          })
+          .skip(skip)
+          .take(page)
+          .getManyAndCount()
+        return res.status(200).json({ stockTrails, count })
+      }
     } catch (err) {
       console.log(err)
       return
@@ -76,18 +93,35 @@ router.get(
     const productId: string = req.params.id
     const page = req.query.page !== undefined ? +req.query.page : 100
     const skip = req.query.skip !== undefined ? +req.query.skip : 0
+    const fromDate = req.query.fromDate
+    const toDate = req.query.toDate
     try {
-      const [stockTrails, count] = await getConnection()
-        .getRepository(StockTrail)
-        .createQueryBuilder('trails')
-        .leftJoinAndSelect('trails.user', 'user')
-        .where('"productId" = :product_id', {
-          product_id: productId
-        })
-        .skip(skip)
-        .take(page)
-        .getManyAndCount()
-      return res.status(200).json({ stockTrails, count })
+      if (!isEmpty(fromDate) && !isEmpty(toDate)) {
+        const [stockTrails, count] = await getConnection()
+          .getRepository(StockTrail)
+          .createQueryBuilder('trails')
+          .leftJoinAndSelect('trails.user', 'user')
+          .where('"productId" = :product_id', {
+            product_id: productId
+          })
+          .andWhere(`trails.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
+          .skip(skip)
+          .take(page)
+          .getManyAndCount()
+        return res.status(200).json({ stockTrails, count })
+      } else {
+        const [stockTrails, count] = await getConnection()
+          .getRepository(StockTrail)
+          .createQueryBuilder('trails')
+          .leftJoinAndSelect('trails.user', 'user')
+          .where('"productId" = :product_id', {
+            product_id: productId
+          })
+          .skip(skip)
+          .take(page)
+          .getManyAndCount()
+        return res.status(200).json({ stockTrails, count })
+      }
     } catch (err) {
       console.log(err)
       return
