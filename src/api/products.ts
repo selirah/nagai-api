@@ -226,7 +226,7 @@ router.get(
         })
         .getMany()
       return res.status(200).json(products)
-    } catch (err: any) {
+    } catch (err) {
       console.log(err)
       return res.sendStatus(500)
     }
