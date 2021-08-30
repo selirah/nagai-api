@@ -30,6 +30,9 @@ export class Territory extends BaseEntity {
   @Column()
   regionId: number
 
+  @Column({ type: 'text', nullable: true })
+  description: string
+
   @ManyToOne(() => Region, (region) => region.territories)
   @JoinColumn({ name: 'regionId' })
   region: Region

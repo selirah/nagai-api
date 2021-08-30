@@ -26,7 +26,8 @@ router.post(
         .values({
           locality: inputs.locality.toLowerCase(),
           coordinates: inputs.coordinates,
-          regionId: inputs.regionId
+          regionId: inputs.regionId,
+          description: inputs.description
         })
         .returning('*')
         .execute()
@@ -62,7 +63,8 @@ router.put(
         .set({
           locality: inputs.locality.toLowerCase(),
           coordinates: inputs.coordinates,
-          regionId: inputs.regionId
+          regionId: inputs.regionId,
+          description: inputs.description
         })
         .where('"id" = :id', {
           id: id

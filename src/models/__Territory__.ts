@@ -6,6 +6,7 @@ export class __Territory__ {
     lng: number
   }
   regionId: number
+  description: string
   createdAt: Date
   updatedAt: Date
 }
