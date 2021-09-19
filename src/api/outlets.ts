@@ -2,7 +2,7 @@ import { router } from '../utils'
 import { Request, Response } from 'express'
 import { Outlet } from '../entities/Outlet'
 import { authorization } from '../middleware/auth'
-import { getConnection } from 'typeorm'
+import { getConnection, Brackets } from 'typeorm'
 import { validateClient } from '../validations'
 import { __Outlet__ } from '../models/__Outlet__'
 
@@ -14,29 +14,37 @@ router.post('/outlets', authorization, async (req: Request, res: Response) => {
     return res.status(400).json({ errors })
   }
 
-  let client: __Outlet__
-  const queryResult = await getConnection()
-    .createQueryBuilder()
-    .insert()
-    .into(Outlet)
-    .values({
-      // businessName: inputs.businessName,
-      // businessEmail: inputs.businessEmail,
-      // phoneNumber: inputs.phoneNumber,
-      // coordinates: inputs.coordinates,
-      // territoryId: inputs.territoryId,
-      // location: inputs.location,
-      // logo: inputs.logo
-    })
-    .returning('*')
-    .execute()
+  let outlet: __Outlet__
+  try {
+    const queryResult = await getConnection()
+      .createQueryBuilder()
+      .insert()
+      .into(Outlet)
+      .values({
+        ownerName: inputs.ownerName.toLowerCase(),
+        outletName: inputs.outletName.toLowerCase(),
+        mobile: inputs.mobile,
+        telephone: inputs.telephone,
+        email: inputs.email,
+        locality: inputs.locality.toLowerCase(),
+        barcode: inputs.barcode,
+        subLocality: inputs.subLocality.toLowerCase(),
+        landmark: inputs.landmark,
+        coordinates: inputs.coordinates,
+        territoryId: inputs.territoryId
+      })
+      .returning('*')
+      .execute()
 
-  client = queryResult.raw[0]
-  if (!client) {
-    return res.sendStatus(500)
+    outlet = queryResult.raw[0]
+    if (!outlet) {
+      return res.sendStatus(500)
+    }
+  } catch (err) {
+    console.log(err)
   }
 
-  return res.status(201).json(client)
+  return res.sendStatus(201)
 })
 
 router.put(
@@ -51,50 +59,94 @@ router.put(
       return res.status(400).json({ errors })
     }
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .update(Outlet)
-      .set({
-        // businessName: inputs.businessName,
-        // businessEmail: inputs.businessEmail,
-        // phoneNumber: inputs.phoneNumber,
-        // coordinates: inputs.coordinates,
-        // territoryId: inputs.territoryId,
-        // location: inputs.location,
-        // logo: inputs.logo
-      })
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .update(Outlet)
+        .set({
+          ownerName: inputs.ownerName.toLowerCase(),
+          outletName: inputs.outletName.toLowerCase(),
+          mobile: inputs.mobile,
+          telephone: inputs.telephone,
+          email: inputs.email,
+          locality: inputs.locality.toLowerCase(),
+          barcode: inputs.barcode,
+          subLocality: inputs.subLocality.toLowerCase(),
+          landmark: inputs.landmark,
+          coordinates: inputs.coordinates,
+          territoryId: inputs.territoryId,
+          photo: inputs.photo
+        })
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
-    const client = await getConnection()
-      .getRepository(Outlet)
-      .createQueryBuilder('client')
-      .where('"id" = :id', {
-        id: id
-      })
-      .getOne()
-
-    if (!client) {
-      return res.sendStatus(500)
-    }
-
-    return res.status(200).json(client)
+    return res.sendStatus(200)
   }
 )
 
-router.get('/outlets', async (_: Request, res: Response) => {
-  const clients = await getConnection()
-    .getRepository(Outlet)
-    .createQueryBuilder('clients')
-    .orderBy('clients."createdAt"', 'DESC')
-    .getMany()
+router.get('/outlets', authorization, async (req: Request, res: Response) => {
+  const page = req.query.page !== undefined ? +req.query.page : 100
+  const skip = req.query.skip !== undefined ? +req.query.skip : 0
+  const territory = req.query.territory !== undefined ? +req.query.territory : 0
+  const query = req.query.query
 
-  return res.status(200).json(clients)
+  try {
+    if (territory !== 0) {
+      const [outlets, count] = await getConnection()
+        .getRepository(Outlet)
+        .createQueryBuilder('outlets')
+        .leftJoinAndSelect('outlets.territory', 'territory')
+        .where('outlets."territoryId" = :territory_id', {
+          territory_id: territory
+        })
+        .andWhere(
+          new Brackets((sqb) => {
+            sqb.where('outlets."barcode" like :query', {
+              query: `%${query?.toString()}%`
+            })
+            sqb.orWhere('outlets."outletName" like :query', {
+              query: `%${query?.toString().toLowerCase()}%`
+            })
+            sqb.orWhere('outlets."ownerName" like :query', {
+              query: `%${query?.toString().toLowerCase()}%`
+            })
+          })
+        )
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ outlets, count })
+    } else {
+      const [outlets, count] = await getConnection()
+        .getRepository(Outlet)
+        .createQueryBuilder('outlets')
+        .leftJoinAndSelect('outlets.territory', 'territory')
+        .where('outlets."barcode" like :query', {
+          query: `%${query?.toString()}%`
+        })
+        .orWhere('outlets."outletName" like :query', {
+          query: `%${query?.toString().toLowerCase()}%`
+        })
+        .orWhere('outlets."ownerName" like :query', {
+          query: `%${query?.toString().toLowerCase()}%`
+        })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ outlets, count })
+    }
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
+  }
 })
 
 router.delete(
@@ -103,20 +155,26 @@ router.delete(
   async (req: Request, res: Response) => {
     const id: number = parseInt(req.params.id)
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .delete()
-      .from(Outlet)
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(Outlet)
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
     return res.sendStatus(204)
   }
 )
 
-export { router as clients }
+// TODO: create bulk insert
+
+export { router as outlets }

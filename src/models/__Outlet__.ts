@@ -1,15 +1,20 @@
 export class __Outlet__ {
   id: number
-  businessName: string
-  phoneNumber: string
-  businessEmail: string
+  ownerName: string
+  outletName: string
+  mobile: string
+  telephone: string
+  email: string
+  locality: string
+  barcode: string
+  subLocality: string
+  landmark: string
+  territoryId: number
+  photo: string
   coordinates: {
     lat: number
     lng: number
   }
-  location: string
-  territoryId: number
-  logo: string
   createdAt: Date
   updatedAt: Date
 }

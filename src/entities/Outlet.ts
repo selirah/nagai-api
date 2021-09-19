@@ -35,17 +35,14 @@ export class Outlet extends BaseEntity {
   @Column()
   locality: string
 
-  @Column({ nullable: true })
-  subLocality: string
-
-  @Column({ nullable: true })
-  landmark: string
-
-  @Column({ nullable: true })
-  region: string
+  @Column()
+  barcode: string
 
   @Column()
-  location: string
+  subLocality: string
+
+  @Column({ type: 'text', nullable: true })
+  landmark: string
 
   @Column()
   territoryId: number

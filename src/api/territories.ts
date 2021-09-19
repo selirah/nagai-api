@@ -133,19 +133,46 @@ router.delete(
   async (req: Request, res: Response) => {
     const id: number = parseInt(req.params.id)
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .delete()
-      .from(Territory)
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(Territory)
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
     return res.sendStatus(200)
+  }
+)
+
+router.get(
+  '/territories/search',
+  authorization,
+  async (req: Request, res: Response) => {
+    const query = req.query.q
+    let territories: Territory[] = []
+    try {
+      territories = await getConnection()
+        .getRepository(Territory)
+        .createQueryBuilder('territories')
+        .leftJoinAndSelect('territories.region', 'region')
+        .where('"locality" like :query', {
+          query: `%${query?.toString().toLowerCase()}%`
+        })
+        .getMany()
+      return res.status(200).json(territories)
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
   }
 )
 

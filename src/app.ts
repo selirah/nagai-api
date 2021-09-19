@@ -10,7 +10,7 @@ import {
   categories,
   products,
   territories,
-  clients,
+  outlets,
   stock,
   orders,
   userTerritories,
@@ -40,7 +40,7 @@ app.use(api, manufacturers)
 app.use(api, categories)
 app.use(api, products)
 app.use(api, territories)
-app.use(api, clients)
+app.use(api, outlets)
 app.use(api, stock)
 app.use(api, orders)
 app.use(api, userTerritories)

@@ -46,15 +46,6 @@ export const validateManufacturer = (inputs: __Manufacturer__) => {
     ]
   }
 
-  if (!validator.isMobilePhone(inputs.phone)) {
-    return [
-      {
-        field: 'phone',
-        message: 'Phone number must be a valid'
-      }
-    ]
-  }
-
   if (
     !validator.isEmpty(`${inputs.coordinates.lat}`) &&
     !validator.isFloat(`${inputs.coordinates.lat}`)
