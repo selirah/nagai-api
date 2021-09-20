@@ -10,7 +10,6 @@ import {
   JoinColumn
 } from 'typeorm'
 import { Outlet } from './Outlet'
-import { User } from './User'
 import { Region } from './Region'
 
 @Entity()
@@ -20,12 +19,6 @@ export class Territory extends BaseEntity {
 
   @Column()
   locality: string
-
-  @Column({ type: 'json' })
-  coordinates: {
-    lat: number
-    lng: number
-  }
 
   @Column()
   regionId: number
@@ -39,9 +32,6 @@ export class Territory extends BaseEntity {
 
   @OneToMany(() => Outlet, (outlet) => outlet.territory)
   outlets: Outlet[]
-
-  @OneToMany(() => User, (user) => user.territory)
-  users: User[]
 
   @CreateDateColumn()
   createdAt: Date

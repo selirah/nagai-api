@@ -257,6 +257,9 @@ router.post('/users', authorization, async (req: Request, res: Response) => {
       .returning('*')
       .execute()
     user = result.raw[0]
+    if (!user) {
+      return res.sendStatus(500)
+    }
     // send code to user on sms and email
     const emailMessage = `<h2>Use this temporal password ${password} to login your account</h2>`
     const smsMessage = `Use this temporal password ${password} to login your account`
@@ -268,7 +271,7 @@ router.post('/users', authorization, async (req: Request, res: Response) => {
       return res.status(400).json({ errors })
     }
   }
-  return res.status(201).json(user)
+  return res.sendStatus(201)
 })
 
 router.put('/users/:id', authorization, async (req: Request, res: Response) => {
@@ -280,61 +283,81 @@ router.put('/users/:id', authorization, async (req: Request, res: Response) => {
     return res.status(400).json({ errors })
   }
 
-  const queryResult = await getConnection()
-    .createQueryBuilder()
-    .update(User)
-    .set({
-      firstName: inputs.firstName,
-      lastName: inputs.lastName,
-      email: inputs.email,
-      phone: inputs.phone,
-      isVerified: true,
-      role: inputs.role.toLocaleLowerCase(),
-      avatar: inputs.avatar
-    })
-    .where('id = :id', {
-      id: userId
-    })
-    .execute()
+  try {
+    const queryResult = await getConnection()
+      .createQueryBuilder()
+      .update(User)
+      .set({
+        firstName: inputs.firstName,
+        lastName: inputs.lastName,
+        email: inputs.email,
+        phone: inputs.phone,
+        isVerified: true,
+        role: inputs.role.toLowerCase(),
+        avatar: inputs.avatar
+      })
+      .where('id = :id', {
+        id: userId
+      })
+      .execute()
 
-  if (queryResult.affected !== 1) {
+    if (queryResult.affected !== 1) {
+      return res.sendStatus(500)
+    }
+    return res.sendStatus(200)
+  } catch (err) {
+    console.log(err)
     return res.sendStatus(500)
   }
-  const user = await getConnection()
-    .getRepository(User)
-    .createQueryBuilder('user')
-    .where('id = :id', {
-      id: userId
-    })
-    .getOne()
-
-  return res.status(200).json(user)
 })
 
-router.get('/users', async (_: Request, res: Response) => {
-  const users = await getConnection()
-    .getRepository(User)
-    .createQueryBuilder('users')
-    .where('role != :role', {
-      role: UserRole.ADMIN
-    })
-    .getMany()
-
-  return res.status(200).json(users)
+router.get('/users', async (req: Request, res: Response) => {
+  const page = req.query.page !== undefined ? +req.query.page : 10
+  const skip = req.query.skip !== undefined ? +req.query.skip : 0
+  const query = req.query.query
+  try {
+    const [users, count] = await getConnection()
+      .getRepository(User)
+      .createQueryBuilder('users')
+      .where('users."firstName" like :query', {
+        query: `%${query?.toString()}%`
+      })
+      .orWhere('users."lastName" like :query', {
+        query: `%${query?.toString().toLowerCase()}%`
+      })
+      .orWhere('users."email" like :query', {
+        query: `%${query?.toString().toLowerCase()}%`
+      })
+      .orWhere('users."phone" like :query', {
+        query: `%${query?.toString()}%`
+      })
+      .skip(skip)
+      .take(page)
+      .getManyAndCount()
+    return res.status(200).json({ users, count })
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
+  }
 })
 
 router.get('/users/:id', async (req: Request, res: Response) => {
   const userId: number = parseInt(req.params.id)
 
-  const user = await getConnection()
-    .getRepository(User)
-    .createQueryBuilder('user')
-    .where('id = :id', {
-      id: userId
-    })
-    .getOne()
+  try {
+    const user = await getConnection()
+      .getRepository(User)
+      .createQueryBuilder('user')
+      .where('id = :id', {
+        id: userId
+      })
+      .getOne()
 
-  return res.status(200).json(user)
+    return res.status(200).json(user)
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
+  }
 })
 
 export { router as users }

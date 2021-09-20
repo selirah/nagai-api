@@ -128,4 +128,24 @@ router.delete(
   }
 )
 
+router.post(
+  '/manufacturers/bulk',
+  authorization,
+  async (req: Request, res: Response) => {
+    const inputs: __Manufacturer__[] = req.body
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Manufacturer)
+        .values(inputs)
+        .execute()
+    } catch (err) {
+      console.log(err)
+    }
+
+    return res.sendStatus(201)
+  }
+)
+
 export { router as manufacturers }

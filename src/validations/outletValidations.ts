@@ -1,7 +1,7 @@
 import validator from 'validator'
 import { __Outlet__ } from '../models/__Outlet__'
 
-export const validateClient = (inputs: __Outlet__) => {
+export const validateOutlet = (inputs: __Outlet__) => {
   if (validator.isEmpty(inputs.ownerName)) {
     return [
       {
@@ -119,5 +119,17 @@ export const validateClient = (inputs: __Outlet__) => {
     ]
   }
 
+  return null
+}
+
+export const barcodeExist = (inputs: __Outlet__, error: any) => {
+  if (error.code === '23505' && error.detail.includes('barcode')) {
+    return [
+      {
+        field: 'barcode',
+        message: `barcode ${inputs.barcode} already exists`
+      }
+    ]
+  }
   return null
 }

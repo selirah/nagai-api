@@ -3,12 +3,12 @@ import { Request, Response } from 'express'
 import { Outlet } from '../entities/Outlet'
 import { authorization } from '../middleware/auth'
 import { getConnection, Brackets } from 'typeorm'
-import { validateClient } from '../validations'
+import { validateOutlet, barcodeExist } from '../validations'
 import { __Outlet__ } from '../models/__Outlet__'
 
 router.post('/outlets', authorization, async (req: Request, res: Response) => {
   const inputs: __Outlet__ = req.body
-  const errors = validateClient(inputs)
+  const errors = validateOutlet(inputs)
 
   if (errors) {
     return res.status(400).json({ errors })
@@ -41,7 +41,10 @@ router.post('/outlets', authorization, async (req: Request, res: Response) => {
       return res.sendStatus(500)
     }
   } catch (err) {
-    console.log(err)
+    const errors = barcodeExist(inputs, err)
+    if (errors) {
+      return res.status(400).json({ errors })
+    }
   }
 
   return res.sendStatus(201)
@@ -52,7 +55,7 @@ router.put(
   authorization,
   async (req: Request, res: Response) => {
     const inputs: __Outlet__ = req.body
-    const errors = validateClient(inputs)
+    const errors = validateOutlet(inputs)
     const id: number = parseInt(req.params.id)
 
     if (errors) {
@@ -93,7 +96,7 @@ router.put(
 )
 
 router.get('/outlets', authorization, async (req: Request, res: Response) => {
-  const page = req.query.page !== undefined ? +req.query.page : 100
+  const page = req.query.page !== undefined ? +req.query.page : 10
   const skip = req.query.skip !== undefined ? +req.query.skip : 0
   const territory = req.query.territory !== undefined ? +req.query.territory : 0
   const query = req.query.query
@@ -171,10 +174,28 @@ router.delete(
     } catch (err) {
       console.log(err)
     }
-    return res.sendStatus(204)
+    return res.sendStatus(200)
   }
 )
 
-// TODO: create bulk insert
+router.post(
+  '/outlets/bulk',
+  authorization,
+  async (req: Request, res: Response) => {
+    const inputs: __Outlet__[] = req.body
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Outlet)
+        .values(inputs)
+        .execute()
+    } catch (err) {
+      console.log(err)
+    }
+
+    return res.sendStatus(201)
+  }
+)
 
 export { router as outlets }

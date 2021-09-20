@@ -34,3 +34,15 @@ export const validateUserTerritory = (inputs: __UserTerritory__) => {
   }
   return null
 }
+
+export const userTerritoryExist = (error: any) => {
+  if (error.code === '23505' && error.detail.includes('userId')) {
+    return [
+      {
+        field: 'user',
+        message: `User already has territories. Consider updating it instead`
+      }
+    ]
+  }
+  return null
+}

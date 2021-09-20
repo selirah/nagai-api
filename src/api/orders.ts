@@ -135,22 +135,28 @@ router.get('/orders', authorization, async (req: Request, res: Response) => {
 })
 
 router.get(
-  '/orders/:clientId',
+  '/orders/:outletId',
   authorization,
   async (req: Request, res: Response) => {
-    const limit = req.query.limit !== undefined ? +req.query.limit : 100
-    const offset = req.query.offset !== undefined ? +req.query.offset : 0
-    const clientId: string = req.params.clientId
+    const page = req.query.page !== undefined ? +req.query.page : 10
+    const skip = req.query.skip !== undefined ? +req.query.skip : 0
+    const outletId: string = req.params.outletId
 
-    const orders = await getConnection()
-      .getRepository(Order)
-      .createQueryBuilder('orders')
-      .where('orders."clientId" = :clientId', { clientId: clientId })
-      .skip(offset)
-      .take(limit)
-      .getMany()
+    try {
+      const [orders, count] = await getConnection()
+        .getRepository(Order)
+        .createQueryBuilder('orders')
+        .leftJoinAndSelect('orders.agent', 'agent')
+        .where('orders."outletId" = :outletId', { outletId: outletId })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
 
-    return res.status(200).json(orders)
+      return res.status(200).json({ orders, count })
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
   }
 )
 

@@ -1,8 +1,8 @@
-import { Product } from './Product';
+import { Product } from './Product'
 
 export class Item {
-  product: Product;
-  unit: string;
-  unitPrice: number;
-  quantity: number;
+  product: Product
+  unit: string
+  unitPrice: number
+  quantity: number
 }

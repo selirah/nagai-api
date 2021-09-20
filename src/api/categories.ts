@@ -131,4 +131,24 @@ router.delete(
   }
 )
 
+router.post(
+  '/categories/bulk',
+  authorization,
+  async (req: Request, res: Response) => {
+    const inputs: __Category__[] = req.body
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Category)
+        .values(inputs)
+        .execute()
+    } catch (err) {
+      console.log(err)
+    }
+
+    return res.sendStatus(201)
+  }
+)
+
 export { router as categories }

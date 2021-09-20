@@ -3,6 +3,7 @@ import { Request, Response } from 'express'
 import { Region } from '../entities/Region'
 import { City } from '../entities/City'
 import { Unit } from '../entities/Unit'
+import { Territory } from '../entities/Territory'
 import { getConnection } from 'typeorm'
 
 router.get('/utils/regions', async (_: Request, res: Response) => {
@@ -27,6 +28,15 @@ router.get('/utils/units', async (_: Request, res: Response) => {
   const units = await getConnection()
     .getRepository(Unit)
     .createQueryBuilder('units')
+    .getMany()
+
+  return res.status(200).json(units)
+})
+
+router.get('/utils/territories', async (_: Request, res: Response) => {
+  const units = await getConnection()
+    .getRepository(Territory)
+    .createQueryBuilder('territories')
     .getMany()
 
   return res.status(200).json(units)

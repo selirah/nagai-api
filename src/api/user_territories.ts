@@ -1,10 +1,10 @@
 import { router } from '../utils'
 import { Request, Response } from 'express'
 import { UserTerritory } from '../entities/UserTerritory'
-import { User } from '../entities/User'
+// import { User } from '../entities/User'
 import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
-import { validateUserTerritory } from '../validations'
+import { validateUserTerritory, userTerritoryExist } from '../validations'
 import { __UserTerritory__ } from '../models/__UserTerritory__'
 
 router.post(
@@ -18,35 +18,30 @@ router.post(
       return res.status(400).json({ errors })
     }
 
-    const user = await User.findOne({ where: { id: inputs.userId } })
-    if (!user) {
-      const errors = [
-        {
-          field: 'userId',
-          message: `User with that id does not exists`
-        }
-      ]
-      return res.status(404).json({ errors })
-    }
-
     let userTerritory: __UserTerritory__
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .insert()
-      .into(UserTerritory)
-      .values({
-        userId: inputs.userId,
-        territories: inputs.territories
-      })
-      .returning('*')
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(UserTerritory)
+        .values({
+          userId: inputs.userId,
+          territories: inputs.territories
+        })
+        .returning('*')
+        .execute()
 
-    userTerritory = queryResult.raw[0]
-    if (!userTerritory) {
-      return res.sendStatus(500)
+      userTerritory = queryResult.raw[0]
+      if (!userTerritory) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      const errors = userTerritoryExist(err)
+      if (errors) {
+        return res.status(400).json({ errors })
+      }
     }
-
-    return res.status(201).json(userTerritory)
+    return res.sendStatus(201)
   }
 )
 
@@ -62,45 +57,65 @@ router.put(
       return res.status(400).json({ errors })
     }
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .update(UserTerritory)
-      .set({
-        userId: inputs.userId,
-        territories: inputs.territories
-      })
-      .where('id = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .update(UserTerritory)
+        .set({
+          userId: inputs.userId,
+          territories: inputs.territories
+        })
+        .where('id = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+      return res.sendStatus(200)
+    } catch (err) {
+      console.log(err)
       return res.sendStatus(500)
     }
-    const userTerritory = await getConnection()
-      .getRepository(UserTerritory)
-      .createQueryBuilder('userTerritory')
-      .where('id = :id', {
-        id: id
-      })
-      .getOne()
-
-    if (!userTerritory) {
-      return res.sendStatus(500)
-    }
-
-    return res.status(200).json(userTerritory)
   }
 )
 
-router.get('/user-territories', async (_: Request, res: Response) => {
-  const userTerritories = await getConnection()
-    .getRepository(UserTerritory)
-    .createQueryBuilder('userTerritories')
-    .leftJoinAndSelect('userTerritories.user', 'user')
-    .getMany()
+router.get('/user-territories', async (req: Request, res: Response) => {
+  const page = req.query.page !== undefined ? +req.query.page : 10
+  const skip = req.query.skip !== undefined ? +req.query.skip : 0
 
-  return res.status(200).json(userTerritories)
+  try {
+    const [userTerritories, count] = await getConnection()
+      .getRepository(UserTerritory)
+      .createQueryBuilder('userTerritories')
+      .leftJoinAndSelect('userTerritories.user', 'user')
+      .skip(skip)
+      .take(page)
+      .getManyAndCount()
+    return res.status(200).json({ userTerritories, count })
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
+  }
+})
+
+router.get('/user-territories/:userId', async (req: Request, res: Response) => {
+  const userId: number = parseInt(req.params.userId)
+  try {
+    const userTerritories = await getConnection()
+      .getRepository(UserTerritory)
+      .createQueryBuilder('userTerritories')
+      .leftJoinAndSelect('userTerritories.user', 'user')
+      .where('outlets."userId" = :user_id', {
+        user_id: userId
+      })
+      .getOneOrFail()
+    return res.status(200).json(userTerritories)
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
+  }
 })
 
 router.delete(
@@ -108,20 +123,23 @@ router.delete(
   authorization,
   async (req: Request, res: Response) => {
     const id: number = parseInt(req.params.id)
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(UserTerritory)
+        .where('id = :id', {
+          id: id
+        })
+        .execute()
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .delete()
-      .from(UserTerritory)
-      .where('id = :id', {
-        id: id
-      })
-      .execute()
-
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
     }
-    return res.sendStatus(204)
+    return res.sendStatus(200)
   }
 )
 

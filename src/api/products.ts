@@ -101,7 +101,7 @@ router.put(
 )
 
 router.get('/products', authorization, async (req: Request, res: Response) => {
-  const page = req.query.page !== undefined ? +req.query.page : 100
+  const page = req.query.page !== undefined ? +req.query.page : 10
   const skip = req.query.skip !== undefined ? +req.query.skip : 0
   const category = req.query.category !== undefined ? +req.query.category : 0
   const manufacturer =
@@ -230,6 +230,26 @@ router.get(
       console.log(err)
       return res.sendStatus(500)
     }
+  }
+)
+
+router.post(
+  '/products/bulk',
+  authorization,
+  async (req: Request, res: Response) => {
+    const inputs: __Product__[] = req.body
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Product)
+        .values(inputs)
+        .execute()
+    } catch (err) {
+      console.log(err)
+    }
+
+    return res.sendStatus(201)
   }
 )
 

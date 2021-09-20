@@ -35,7 +35,7 @@ export class Outlet extends BaseEntity {
   @Column()
   locality: string
 
-  @Column()
+  @Column({ unique: true })
   barcode: string
 
   @Column()

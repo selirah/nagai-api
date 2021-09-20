@@ -138,7 +138,7 @@ router.put('/stock/:id', authorization, async (req: Request, res: Response) => {
 })
 
 router.get('/stock', authorization, async (req: Request, res: Response) => {
-  const page = req.query.page !== undefined ? +req.query.page : 100
+  const page = req.query.page !== undefined ? +req.query.page : 10
   const skip = req.query.skip !== undefined ? +req.query.skip : 0
   const query = req.query.query
   const fromDate = req.query.fromDate

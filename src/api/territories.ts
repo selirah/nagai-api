@@ -17,6 +17,23 @@ router.post(
       return res.status(400).json({ errors })
     }
 
+    const findOne = await Territory.findOne({
+      where: {
+        locality: inputs.locality.toLowerCase(),
+        regionId: inputs.regionId
+      }
+    })
+
+    if (findOne) {
+      const errors = [
+        {
+          field: 'locality',
+          message: `Territory ${inputs.locality.toUpperCase()} already exists for this region`
+        }
+      ]
+      return res.status(400).json({ errors })
+    }
+
     let territory: __Territory__
     try {
       const queryResult = await getConnection()
@@ -25,7 +42,6 @@ router.post(
         .into(Territory)
         .values({
           locality: inputs.locality.toLowerCase(),
-          coordinates: inputs.coordinates,
           regionId: inputs.regionId,
           description: inputs.description
         })
@@ -62,7 +78,6 @@ router.put(
         .update(Territory)
         .set({
           locality: inputs.locality.toLowerCase(),
-          coordinates: inputs.coordinates,
           regionId: inputs.regionId,
           description: inputs.description
         })
@@ -83,7 +98,7 @@ router.put(
 )
 
 router.get('/territories', async (req: Request, res: Response) => {
-  const page = req.query.page !== undefined ? +req.query.page : 100
+  const page = req.query.page !== undefined ? +req.query.page : 10
   const skip = req.query.skip !== undefined ? +req.query.skip : 0
   const region = req.query.region !== undefined ? +req.query.region : 0
   const query = req.query.query
@@ -94,7 +109,6 @@ router.get('/territories', async (req: Request, res: Response) => {
         .getRepository(Territory)
         .createQueryBuilder('territories')
         .leftJoinAndSelect('territories.outlets', 'outlets')
-        .leftJoinAndSelect('territories.users', 'users')
         .leftJoinAndSelect('territories.region', 'region')
         .where('territories."regionId" = :region_id', {
           region_id: region
@@ -111,7 +125,6 @@ router.get('/territories', async (req: Request, res: Response) => {
         .getRepository(Territory)
         .createQueryBuilder('territories')
         .leftJoinAndSelect('territories.outlets', 'outlets')
-        .leftJoinAndSelect('territories.users', 'users')
         .leftJoinAndSelect('territories.region', 'region')
         .where('territories."locality" like :query', {
           query: `%${query?.toString().toLowerCase()}%`
@@ -173,6 +186,26 @@ router.get(
       console.log(err)
       return res.sendStatus(500)
     }
+  }
+)
+
+router.post(
+  '/territories/bulk',
+  authorization,
+  async (req: Request, res: Response) => {
+    const inputs: __Territory__[] = req.body
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Territory)
+        .values(inputs)
+        .execute()
+    } catch (err) {
+      console.log(err)
+    }
+
+    return res.sendStatus(201)
   }
 )
 

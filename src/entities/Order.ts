@@ -10,6 +10,7 @@ import {
 } from 'typeorm'
 import { Outlet } from './Outlet'
 import { Item } from './Item'
+import { User } from './User'
 
 @Entity()
 export class Order extends BaseEntity {
@@ -28,9 +29,16 @@ export class Order extends BaseEntity {
   @Column()
   outletId: number
 
+  @Column()
+  agentId: number
+
   @ManyToOne(() => Outlet, (outlet) => outlet.orders)
   @JoinColumn({ name: 'outletId' })
   outlet: Outlet
+
+  @ManyToOne(() => User, (user) => user.orders)
+  @JoinColumn({ name: 'agentId' })
+  agent: User
 
   @CreateDateColumn()
   createdAt: Date
