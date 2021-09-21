@@ -37,6 +37,7 @@ router.get('/utils/territories', async (_: Request, res: Response) => {
   const units = await getConnection()
     .getRepository(Territory)
     .createQueryBuilder('territories')
+    .leftJoinAndSelect('territories.region', 'region')
     .getMany()
 
   return res.status(200).json(units)
