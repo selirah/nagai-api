@@ -20,11 +20,35 @@ export class Order extends BaseEntity {
   @Column({ type: 'json' })
   items: Item
 
-  @Column('decimal', { precision: 15, scale: 2, default: 12.5 })
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
+  orderTotal: number
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0.04 })
   vat: number
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0.035 })
+  nhil: number
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0.01 })
+  covid19: number
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
+  sanitation: number
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
+  energy: number
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
+  financialCleanup: number
 
   @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
   discount: number
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
+  deliveryFee: number
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
+  totalAmount: number
 
   @Column()
   outletId: number

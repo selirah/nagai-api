@@ -219,14 +219,6 @@ export const validateAgentAndDispatch = (inputs: __User__) => {
     ]
   }
 
-  if (!validator.isMobilePhone(inputs.phone)) {
-    return [
-      {
-        field: 'phone',
-        message: 'Phone number must be a valid'
-      }
-    ]
-  }
   if (validator.isEmpty(inputs.role)) {
     return [
       {

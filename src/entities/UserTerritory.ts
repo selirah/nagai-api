@@ -22,7 +22,7 @@ export class UserTerritory extends BaseEntity {
   @Column({ type: 'json' })
   territories: Territory[]
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, (user) => user.userTerritories)
   @JoinColumn({ name: 'userId' })
   user: User
 

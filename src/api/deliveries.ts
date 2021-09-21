@@ -32,8 +32,7 @@ router.post(
       .into(Delivery)
       .values({
         orderId: inputs.orderId,
-        dispatchId: inputs.dispatchId,
-        agentId: inputs.agentId
+        dispatchId: inputs.dispatchId
       })
       .returning('*')
       .execute()
@@ -74,7 +73,6 @@ router.put(
       .set({
         orderId: inputs.orderId,
         dispatchId: inputs.dispatchId,
-        agentId: inputs.agentId,
         deliveryDate: moment(new Date()).format('YYYY-MM-DD HH:MM:SS'),
         isDelivered: inputs.isDelivered,
         reason: inputs.reason

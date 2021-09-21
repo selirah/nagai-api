@@ -23,9 +23,6 @@ export class Delivery extends BaseEntity {
   @Column()
   dispatchId: number
 
-  @Column()
-  agentId: number
-
   @Column({ default: false })
   isDelivered: boolean
 
@@ -42,10 +39,6 @@ export class Delivery extends BaseEntity {
   @ManyToOne(() => User, (user) => user.deliveries)
   @JoinColumn({ name: 'dispatchId' })
   dispatch: User
-
-  @ManyToOne(() => User, (user) => user.agents)
-  @JoinColumn({ name: 'agentId' })
-  agent: User
 
   @CreateDateColumn()
   createdAt: Date

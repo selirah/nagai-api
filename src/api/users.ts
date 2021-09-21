@@ -14,7 +14,7 @@ import {
 import { __User__ } from '../models/__User__'
 import { __Code__ } from '../models/__Code__'
 import argon2 from 'argon2'
-import { getConnection } from 'typeorm'
+import { getConnection, Brackets } from 'typeorm'
 import moment from 'moment'
 import { isEmpty } from '../validations/isEmpty'
 import { generateRandomNumbers, sanitizePhone } from '../helper/functions'
@@ -38,7 +38,7 @@ router.post('/users/register', async (req: Request, res: Response) => {
         password: hashedPassword,
         phone: sanitizePhone(options.phone),
         role: !isEmpty(options.role)
-          ? options.role.toLocaleLowerCase()
+          ? options.role.toLowerCase()
           : UserRole.ADMIN
       })
       .returning('*')
@@ -246,13 +246,13 @@ router.post('/users', authorization, async (req: Request, res: Response) => {
       .insert()
       .into(User)
       .values({
-        firstName: inputs.firstName,
-        lastName: inputs.lastName,
+        firstName: inputs.firstName.toLowerCase(),
+        lastName: inputs.lastName.toLowerCase(),
         email: inputs.email,
         password: hashedPassword,
-        phone: inputs.phone,
-        isVerified: true,
-        role: inputs.role.toLocaleLowerCase()
+        phone: sanitizePhone(inputs.phone),
+        isVerified: inputs.isVerified,
+        role: inputs.role.toLowerCase()
       })
       .returning('*')
       .execute()
@@ -288,11 +288,11 @@ router.put('/users/:id', authorization, async (req: Request, res: Response) => {
       .createQueryBuilder()
       .update(User)
       .set({
-        firstName: inputs.firstName,
-        lastName: inputs.lastName,
+        firstName: inputs.firstName.toLowerCase(),
+        lastName: inputs.lastName.toLowerCase(),
         email: inputs.email,
-        phone: inputs.phone,
-        isVerified: true,
+        phone: sanitizePhone(inputs.phone),
+        isVerified: inputs.isVerified,
         role: inputs.role.toLowerCase(),
         avatar: inputs.avatar
       })
@@ -311,53 +311,123 @@ router.put('/users/:id', authorization, async (req: Request, res: Response) => {
   }
 })
 
-router.get('/users', async (req: Request, res: Response) => {
+router.get('/users', authorization, async (req: Request, res: Response) => {
   const page = req.query.page !== undefined ? +req.query.page : 10
   const skip = req.query.skip !== undefined ? +req.query.skip : 0
+  const role = req.query.role !== undefined ? req.query.role : ''
   const query = req.query.query
   try {
-    const [users, count] = await getConnection()
-      .getRepository(User)
-      .createQueryBuilder('users')
-      .where('users."firstName" like :query', {
-        query: `%${query?.toString()}%`
-      })
-      .orWhere('users."lastName" like :query', {
-        query: `%${query?.toString().toLowerCase()}%`
-      })
-      .orWhere('users."email" like :query', {
-        query: `%${query?.toString().toLowerCase()}%`
-      })
-      .orWhere('users."phone" like :query', {
-        query: `%${query?.toString()}%`
-      })
-      .skip(skip)
-      .take(page)
-      .getManyAndCount()
-    return res.status(200).json({ users, count })
+    if (!isEmpty(role)) {
+      const [users, count] = await getConnection()
+        .getRepository(User)
+        .createQueryBuilder('users')
+        .leftJoinAndSelect('users.userTerritories', 'userTerritories')
+        .where('users."role" = :role', {
+          role: role
+        })
+        .andWhere(
+          new Brackets((sqb) => {
+            sqb.where('users."firstName" like :query', {
+              query: `%${query?.toString().toLowerCase()}%`
+            })
+            sqb.orWhere('users."lastName" like :query', {
+              query: `%${query?.toString().toLowerCase()}%`
+            })
+            sqb.orWhere('users."email" like :query', {
+              query: `%${query?.toString()}%`
+            })
+            sqb.orWhere('users."phone" like :query', {
+              query: `%${query?.toString()}%`
+            })
+          })
+        )
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ users, count })
+    } else {
+      const [users, count] = await getConnection()
+        .getRepository(User)
+        .createQueryBuilder('users')
+        .leftJoinAndSelect('users.userTerritories', 'userTerritories')
+        .where('users."firstName" like :query', {
+          query: `%${query?.toString().toLowerCase()}%`
+        })
+        .orWhere('users."lastName" like :query', {
+          query: `%${query?.toString().toLowerCase()}%`
+        })
+        .orWhere('users."email" like :query', {
+          query: `%${query?.toString()}%`
+        })
+        .orWhere('users."phone" like :query', {
+          query: `%${query?.toString()}%`
+        })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ users, count })
+    }
   } catch (err) {
     console.log(err)
     return res.sendStatus(500)
   }
 })
 
-router.get('/users/:id', async (req: Request, res: Response) => {
-  const userId: number = parseInt(req.params.id)
-
-  try {
-    const user = await getConnection()
-      .getRepository(User)
-      .createQueryBuilder('user')
-      .where('id = :id', {
-        id: userId
-      })
-      .getOne()
-
-    return res.status(200).json(user)
-  } catch (err) {
-    console.log(err)
-    return res.sendStatus(500)
+router.get(
+  '/users/search',
+  authorization,
+  async (req: Request, res: Response) => {
+    const query = req.query.q
+    let users: User[] = []
+    try {
+      users = await getConnection()
+        .getRepository(User)
+        .createQueryBuilder('users')
+        .where('users."firstName" like :query', {
+          query: `%${query?.toString().toLowerCase()}%`
+        })
+        .orWhere('users."lastName" like :query', {
+          query: `%${query?.toString().toLowerCase()}%`
+        })
+        .orWhere('users."email" like :query', {
+          query: `%${query?.toString()}%`
+        })
+        .orWhere('users."phone" like :query', {
+          query: `%${query?.toString()}%`
+        })
+        .getMany()
+      return res.status(200).json(users)
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
   }
-})
+)
+
+router.delete(
+  '/users/:id',
+  authorization,
+  async (req: Request, res: Response) => {
+    const id: number = parseInt(req.params.id)
+
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(User)
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
+
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
+    }
+    return res.sendStatus(200)
+  }
+)
 
 export { router as users }
