@@ -1,14 +1,12 @@
 import { router /*, sendEmail*/ } from '../utils'
 import { Request, Response } from 'express'
 import { Order } from '../entities/Order'
-import { Transaction } from '../entities/Transaction'
-// import { Client } from '../entities/Client';
 import { authorization } from '../middleware/auth'
-import { getConnection } from 'typeorm'
+import { getConnection, Brackets } from 'typeorm'
 import { validateOrder } from '../validations'
 import { __Order__ } from '../models/__Order__'
-import moment from 'moment'
-import { __Item__ } from 'src/models/__Item__'
+import { __Item__ } from '../models/__Item__'
+import { isEmpty } from '../validations/isEmpty'
 
 router.post('/orders', authorization, async (req: Request, res: Response) => {
   const inputs: __Order__ = req.body
@@ -19,17 +17,16 @@ router.post('/orders', authorization, async (req: Request, res: Response) => {
   }
 
   let order: __Order__
-  // const id = moment(new Date()).format('YMDHHMMSS')
   const queryResult = await getConnection()
     .createQueryBuilder()
     .insert()
     .into(Order)
     .values({
-      // id: id,
-      // items: inputs.items,
-      // vat: inputs.vat,
-      // discount: inputs.discount,
-      // clientId: inputs.clientId
+      orderNumber: inputs.orderNumber,
+      items: inputs.items,
+      orderTotal: inputs.orderTotal,
+      outletId: inputs.outletId,
+      agentId: inputs.agentId
     })
     .returning('*')
     .execute()
@@ -38,40 +35,7 @@ router.post('/orders', authorization, async (req: Request, res: Response) => {
   if (!order) {
     return res.sendStatus(500)
   }
-
-  // Now save this as a transaction in the transaction entity
-  // first we need to calculate the sales (including factoring VAT, discount, and other charges)
-  const { items }: any = order
-  let subtotal = 0.0
-  for (let item of items) {
-    subtotal += item.unitPrice * item.quantity
-  }
-  let total = 0.0
-  const vatCharge = (order.vat / 100) * subtotal
-  const discount = (order.discount / 100) * subtotal
-  total = subtotal + vatCharge - discount
-
-  const saveTransaction = await getConnection()
-    .createQueryBuilder()
-    .insert()
-    .into(Transaction)
-    .values({
-      id: `TRX-${moment(new Date()).format('YMDHHMMSS')}`,
-      orderId: order.id,
-      amount: total,
-      amountPaid: 0.0
-    })
-    .execute()
-  if (!saveTransaction) {
-    return res.sendStatus(500)
-  }
-  // // // send invoice to client
-  // const client = await Client.findOne({ where: { clientId: inputs.clientId } });
-  // if (client) {
-  //   const emailMessage = `<h2>Hello ${client.businessName}, your order ${id} has been placed successfully. Cheers</h2>`;
-  //   await sendEmail(client.businessEmail, emailMessage);
-  // }
-  return res.status(201).json(order)
+  return res.sendStatus(201)
 })
 
 router.put(
@@ -90,10 +54,11 @@ router.put(
       .createQueryBuilder()
       .update(Order)
       .set({
-        // items: inputs.items,
-        // vat: inputs.vat,
-        // discount: inputs.discount,
-        // clientId: inputs.clientId
+        orderNumber: inputs.orderNumber,
+        items: inputs.items,
+        orderTotal: inputs.orderTotal,
+        outletId: inputs.outletId,
+        agentId: inputs.agentId
       })
       .where('"id" = :id', {
         id: id
@@ -103,35 +68,53 @@ router.put(
     if (queryResult.affected !== 1) {
       return res.sendStatus(500)
     }
-    const order = await getConnection()
-      .getRepository(Order)
-      .createQueryBuilder('order')
-      .where('"id" = :id', {
-        id: id
-      })
-      .getOne()
-
-    if (!order) {
-      return res.sendStatus(500)
-    }
-
-    return res.status(200).json(order)
+    return res.sendStatus(200)
   }
 )
 
 router.get('/orders', authorization, async (req: Request, res: Response) => {
-  const limit = req.query.limit !== undefined ? +req.query.limit : 100
-  const offset = req.query.offset !== undefined ? +req.query.offset : 0
+  const page = req.query.page !== undefined ? +req.query.page : 10
+  const skip = req.query.skip !== undefined ? +req.query.skip : 0
+  const query = req.query.query
+  const fromDate = req.query.fromDate
+  const toDate = req.query.toDate
 
-  const orders = await getConnection()
-    .getRepository(Order)
-    .createQueryBuilder('orders')
-    // .innerJoinAndSelect('orders.client', 'client')
-    .skip(offset)
-    .take(limit)
-    .getMany()
-
-  return res.status(200).json(orders)
+  if (!isEmpty(fromDate) && !isEmpty(toDate)) {
+    const [orders, count] = await getConnection()
+      .getRepository(Order)
+      .createQueryBuilder('orders')
+      .leftJoinAndSelect('orders.outlet', 'outlet')
+      .leftJoinAndSelect('orders.agent', 'agent')
+      .leftJoinAndSelect('orders.invoice', 'invoice')
+      .leftJoinAndSelect('orders.delivery', 'delivery')
+      .where(`orders.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
+      .andWhere(
+        new Brackets((sqb) => {
+          sqb.where('orders."orderNumber" like :query', {
+            query: `%${query?.toString()}%`
+          })
+        })
+      )
+      .skip(skip)
+      .take(page)
+      .getManyAndCount()
+    return res.status(200).json({ orders, count })
+  } else {
+    const [orders, count] = await getConnection()
+      .getRepository(Order)
+      .createQueryBuilder('orders')
+      .leftJoinAndSelect('orders.outlet', 'outlet')
+      .leftJoinAndSelect('orders.agent', 'agent')
+      .leftJoinAndSelect('orders.invoice', 'invoice')
+      .leftJoinAndSelect('orders.delivery', 'delivery')
+      .where('stock."orderNumber" like :query', {
+        query: `%${query?.toString()}%`
+      })
+      .skip(skip)
+      .take(page)
+      .getManyAndCount()
+    return res.status(200).json({ orders, count })
+  }
 })
 
 router.get(
@@ -164,13 +147,13 @@ router.delete(
   '/orders/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const id: number = parseInt(req.params.id)
+    const id: string = req.params.id
 
     const queryResult = await getConnection()
       .createQueryBuilder()
       .delete()
       .from(Order)
-      .where('"productId" = :id', {
+      .where('"id" = :id', {
         id: id
       })
       .execute()

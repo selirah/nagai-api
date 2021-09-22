@@ -5,4 +5,5 @@ export class Item {
   unit: string
   unitPrice: number
   quantity: number
+  sku: string
 }

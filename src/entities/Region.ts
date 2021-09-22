@@ -11,16 +11,16 @@ import { Territory } from './Territory'
 @Entity()
 export class Region extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id!: number
+  id: number
 
   @Column()
-  region!: string
+  region: string
 
   @Column()
   abbreviation!: string
 
   @Column()
-  capital!: string
+  capital: string
 
   @OneToMany(() => City, (city) => city.region)
   cities: City[]

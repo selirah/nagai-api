@@ -6,42 +6,40 @@ import {
   OneToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn,
-  ManyToOne
+  JoinColumn
 } from 'typeorm'
 import { Order } from './Order'
-import { User } from './User'
+import { Tax } from './Tax'
 
 @Entity()
-export class Delivery extends BaseEntity {
+export class Invoice extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
   @Column()
-  deliveryNumber: string
+  invoiceNumber: string
 
   @Column()
   orderId: string
 
   @Column()
-  dispatchId: number
+  orderNumber: string
 
-  @Column({ default: false })
-  isDelivered: boolean
+  @Column({ type: 'json' })
+  taxes: Tax[]
 
-  @Column({ nullable: true })
-  deliveryDate: Date
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
+  discount: number
 
-  @Column({ type: 'text', nullable: true })
-  reason: string
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
+  deliveryFee: number
+
+  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
+  finalAmount: number
 
   @OneToOne(() => Order)
   @JoinColumn({ name: 'orderId' })
   order: Order
-
-  @ManyToOne(() => User, (user) => user.deliveries)
-  @JoinColumn({ name: 'dispatchId' })
-  dispatch: User
 
   @CreateDateColumn()
   createdAt: Date

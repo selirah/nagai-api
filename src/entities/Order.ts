@@ -1,54 +1,33 @@
 import {
   BaseEntity,
   Entity,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn
+  JoinColumn,
+  OneToOne
 } from 'typeorm'
 import { Outlet } from './Outlet'
 import { Item } from './Item'
 import { User } from './User'
+import { Invoice } from './Invoice'
+import { Delivery } from './Delivery'
 
 @Entity()
 export class Order extends BaseEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string
+
+  @Column()
+  orderNumber: string
 
   @Column({ type: 'json' })
   items: Item
 
   @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
   orderTotal: number
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0.04 })
-  vat: number
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0.035 })
-  nhil: number
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0.01 })
-  covid19: number
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
-  sanitation: number
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
-  energy: number
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
-  financialCleanup: number
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
-  discount: number
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
-  deliveryFee: number
-
-  @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
-  totalAmount: number
 
   @Column()
   outletId: number
@@ -63,6 +42,12 @@ export class Order extends BaseEntity {
   @ManyToOne(() => User, (user) => user.orders)
   @JoinColumn({ name: 'agentId' })
   agent: User
+
+  @OneToOne(() => Invoice)
+  invoice: Invoice
+
+  @OneToOne(() => Delivery)
+  delivery: Delivery
 
   @CreateDateColumn()
   createdAt: Date

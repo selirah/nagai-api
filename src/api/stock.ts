@@ -182,6 +182,28 @@ router.get('/stock', authorization, async (req: Request, res: Response) => {
   }
 })
 
+router.get(
+  '/stock/:productId',
+  authorization,
+  async (req: Request, res: Response) => {
+    const productId: string = req.params.productId
+    let stock: Stock[] = []
+    try {
+      stock = await getConnection()
+        .getRepository(Stock)
+        .createQueryBuilder('stock')
+        .where('"productId" = :id', {
+          id: productId
+        })
+        .getMany()
+      return res.status(200).json(stock)
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
+  }
+)
+
 router.delete(
   '/stock/:id',
   authorization,

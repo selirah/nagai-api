@@ -31,7 +31,7 @@ router.post(
       .insert()
       .into(Delivery)
       .values({
-        orderId: inputs.orderId,
+        // orderId: inputs.orderId,
         dispatchId: inputs.dispatchId
       })
       .returning('*')
@@ -71,7 +71,7 @@ router.put(
       .createQueryBuilder()
       .update(Delivery)
       .set({
-        orderId: inputs.orderId,
+        // orderId: inputs.orderId,
         dispatchId: inputs.dispatchId,
         deliveryDate: moment(new Date()).format('YYYY-MM-DD HH:MM:SS'),
         isDelivered: inputs.isDelivered,

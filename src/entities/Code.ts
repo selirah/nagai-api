@@ -6,31 +6,31 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   JoinColumn,
-  OneToOne,
-} from 'typeorm';
-import { User } from './User';
+  OneToOne
+} from 'typeorm'
+import { User } from './User'
 
 @Entity()
 export class Code extends BaseEntity {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id: number
 
   @Column()
-  code!: number;
+  code: number
 
   @Column()
-  expiryDate!: Date;
+  expiryDate!: Date
 
   @OneToOne(() => User)
   @JoinColumn({ name: 'userId' })
-  user: User;
+  user: User
 
   @Column()
-  userId: number;
+  userId: number
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt: Date
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt: Date
 }
