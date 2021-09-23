@@ -18,8 +18,6 @@ router.post(
       return res.status(400).json({ errors })
     }
 
-    let manufacturer: __Manufacturer__
-
     try {
       const queryResult = await getConnection()
         .createQueryBuilder()
@@ -36,14 +34,13 @@ router.post(
         .returning('*')
         .execute()
 
-      manufacturer = queryResult.raw[0]
-      if (!manufacturer) {
+      if (!queryResult.raw[0]) {
         return res.sendStatus(500)
       }
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
-
     return res.sendStatus(201)
   }
 )
@@ -82,6 +79,7 @@ router.put(
       }
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
     return res.sendStatus(200)
   }
@@ -91,14 +89,18 @@ router.get(
   '/manufacturers',
   authorization,
   async (_: Request, res: Response) => {
-    const manufacturers = await getConnection()
-      .getRepository(Manufacturer)
-      .createQueryBuilder('manufacturers')
-      .leftJoinAndSelect('manufacturers.products', 'product')
-      .orderBy('manufacturers."createdAt"', 'DESC')
-      .getMany()
-
-    return res.status(200).json(manufacturers)
+    try {
+      const manufacturers = await getConnection()
+        .getRepository(Manufacturer)
+        .createQueryBuilder('manufacturers')
+        .leftJoinAndSelect('manufacturers.products', 'product')
+        .orderBy('manufacturers."createdAt"', 'DESC')
+        .getMany()
+      return res.status(200).json(manufacturers)
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
   }
 )
 
@@ -123,6 +125,7 @@ router.delete(
       }
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
     return res.sendStatus(200)
   }
@@ -140,11 +143,12 @@ router.post(
         .into(Manufacturer)
         .values(inputs)
         .execute()
+
+      return res.sendStatus(201)
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
-
-    return res.sendStatus(201)
   }
 )
 

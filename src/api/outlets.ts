@@ -14,7 +14,6 @@ router.post('/outlets', authorization, async (req: Request, res: Response) => {
     return res.status(400).json({ errors })
   }
 
-  let outlet: __Outlet__
   try {
     const queryResult = await getConnection()
       .createQueryBuilder()
@@ -36,8 +35,7 @@ router.post('/outlets', authorization, async (req: Request, res: Response) => {
       .returning('*')
       .execute()
 
-    outlet = queryResult.raw[0]
-    if (!outlet) {
+    if (!queryResult.raw[0]) {
       return res.sendStatus(500)
     }
   } catch (err) {
@@ -90,6 +88,7 @@ router.put(
       }
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
     return res.sendStatus(200)
   }
@@ -173,6 +172,7 @@ router.delete(
       }
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
     return res.sendStatus(200)
   }
@@ -190,11 +190,12 @@ router.post(
         .into(Outlet)
         .values(inputs)
         .execute()
+
+      return res.sendStatus(201)
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
-
-    return res.sendStatus(201)
   }
 )
 

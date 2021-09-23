@@ -34,7 +34,6 @@ router.post(
       return res.status(400).json({ errors })
     }
 
-    let territory: __Territory__
     try {
       const queryResult = await getConnection()
         .createQueryBuilder()
@@ -48,8 +47,7 @@ router.post(
         .returning('*')
         .execute()
 
-      territory = queryResult.raw[0]
-      if (!territory) {
+      if (!queryResult.raw[0]) {
         return res.sendStatus(500)
       }
     } catch (err) {
@@ -201,11 +199,12 @@ router.post(
         .into(Territory)
         .values(inputs)
         .execute()
+
+      return res.sendStatus(201)
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
-
-    return res.sendStatus(201)
   }
 )
 

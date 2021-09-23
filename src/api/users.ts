@@ -239,9 +239,8 @@ router.post('/users', authorization, async (req: Request, res: Response) => {
   const password = generateRandomNumbers()
   const hashedPassword = await argon2.hash(`${password}`)
 
-  let user: __User__ | undefined
   try {
-    const result = await getConnection()
+    const queryResult = await getConnection()
       .createQueryBuilder()
       .insert()
       .into(User)
@@ -256,8 +255,7 @@ router.post('/users', authorization, async (req: Request, res: Response) => {
       })
       .returning('*')
       .execute()
-    user = result.raw[0]
-    if (!user) {
+    if (!queryResult.raw[0]) {
       return res.sendStatus(500)
     }
     // send code to user on sms and email
@@ -427,6 +425,27 @@ router.delete(
       console.log(err)
     }
     return res.sendStatus(200)
+  }
+)
+
+router.post(
+  '/users/bulk',
+  authorization,
+  async (req: Request, res: Response) => {
+    const inputs: __User__[] = req.body
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(User)
+        .values(inputs)
+        .execute()
+
+      return res.sendStatus(201)
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
   }
 )
 

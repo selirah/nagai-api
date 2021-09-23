@@ -1,5 +1,5 @@
 export class __Tax__ {
-  id: string
+  id: number
   tax: string
   rate: number
   createdAt: Date

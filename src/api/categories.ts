@@ -32,8 +32,6 @@ router.post(
       ]
       return res.status(400).json({ errors })
     }
-
-    let category: __Category__
     try {
       const queryResult = await getConnection()
         .createQueryBuilder()
@@ -45,14 +43,12 @@ router.post(
         .returning('*')
         .execute()
 
-      category = queryResult.raw[0]
-      if (!category) {
+      if (!queryResult.raw[0]) {
         return res.sendStatus(500)
       }
-
-      category.products = []
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
 
     return res.sendStatus(201)
@@ -88,6 +84,7 @@ router.put(
       }
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
 
     return res.sendStatus(200)
@@ -143,11 +140,12 @@ router.post(
         .into(Category)
         .values(inputs)
         .execute()
+
+      return res.sendStatus(201)
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
-
-    return res.sendStatus(201)
   }
 )
 

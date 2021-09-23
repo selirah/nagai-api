@@ -20,9 +20,6 @@ export class Invoice extends BaseEntity {
   invoiceNumber: string
 
   @Column()
-  orderId: string
-
-  @Column()
   orderNumber: string
 
   @Column({ type: 'json' })
@@ -38,7 +35,7 @@ export class Invoice extends BaseEntity {
   finalAmount: number
 
   @OneToOne(() => Order)
-  @JoinColumn({ name: 'orderId' })
+  @JoinColumn({ name: 'orderNumber' })
   order: Order
 
   @CreateDateColumn()

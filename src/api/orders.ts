@@ -16,23 +16,26 @@ router.post('/orders', authorization, async (req: Request, res: Response) => {
     return res.status(400).json({ errors })
   }
 
-  let order: __Order__
-  const queryResult = await getConnection()
-    .createQueryBuilder()
-    .insert()
-    .into(Order)
-    .values({
-      orderNumber: inputs.orderNumber,
-      items: inputs.items,
-      orderTotal: inputs.orderTotal,
-      outletId: inputs.outletId,
-      agentId: inputs.agentId
-    })
-    .returning('*')
-    .execute()
+  try {
+    const queryResult = await getConnection()
+      .createQueryBuilder()
+      .insert()
+      .into(Order)
+      .values({
+        orderNumber: inputs.orderNumber,
+        items: inputs.items,
+        orderTotal: inputs.orderTotal,
+        outletId: inputs.outletId,
+        agentId: inputs.agentId
+      })
+      .returning('*')
+      .execute()
 
-  order = queryResult.raw[0]
-  if (!order) {
+    if (!queryResult.raw[0]) {
+      return res.sendStatus(500)
+    }
+  } catch (err) {
+    console.log(err)
     return res.sendStatus(500)
   }
   return res.sendStatus(201)
@@ -50,22 +53,27 @@ router.put(
       return res.status(400).json({ errors })
     }
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .update(Order)
-      .set({
-        orderNumber: inputs.orderNumber,
-        items: inputs.items,
-        orderTotal: inputs.orderTotal,
-        outletId: inputs.outletId,
-        agentId: inputs.agentId
-      })
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .update(Order)
+        .set({
+          orderNumber: inputs.orderNumber,
+          items: inputs.items,
+          orderTotal: inputs.orderTotal,
+          outletId: inputs.outletId,
+          agentId: inputs.agentId
+        })
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
       return res.sendStatus(500)
     }
     return res.sendStatus(200)
@@ -79,41 +87,52 @@ router.get('/orders', authorization, async (req: Request, res: Response) => {
   const fromDate = req.query.fromDate
   const toDate = req.query.toDate
 
-  if (!isEmpty(fromDate) && !isEmpty(toDate)) {
-    const [orders, count] = await getConnection()
-      .getRepository(Order)
-      .createQueryBuilder('orders')
-      .leftJoinAndSelect('orders.outlet', 'outlet')
-      .leftJoinAndSelect('orders.agent', 'agent')
-      .leftJoinAndSelect('orders.invoice', 'invoice')
-      .leftJoinAndSelect('orders.delivery', 'delivery')
-      .where(`orders.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
-      .andWhere(
-        new Brackets((sqb) => {
-          sqb.where('orders."orderNumber" like :query', {
-            query: `%${query?.toString()}%`
+  try {
+    if (!isEmpty(fromDate) && !isEmpty(toDate)) {
+      const [orders, count] = await getConnection()
+        .getRepository(Order)
+        .createQueryBuilder('orders')
+        .leftJoinAndSelect('orders.outlet', 'outlet')
+        .leftJoinAndSelect('orders.agent', 'agent')
+        .leftJoinAndSelect('orders.invoice', 'invoice')
+        .leftJoinAndSelect('orders.delivery', 'delivery')
+        .where(`orders.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
+        .andWhere(
+          new Brackets((sqb) => {
+            sqb.where('orders."orderId" like :query', {
+              query: `%${query?.toString()}%`
+            })
+            sqb.orWhere('orders."orderNumber" like :query', {
+              query: `%${query?.toString()}%`
+            })
           })
+        )
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ orders, count })
+    } else {
+      const [orders, count] = await getConnection()
+        .getRepository(Order)
+        .createQueryBuilder('orders')
+        .leftJoinAndSelect('orders.outlet', 'outlet')
+        .leftJoinAndSelect('orders.agent', 'agent')
+        .leftJoinAndSelect('orders.invoice', 'invoice')
+        .leftJoinAndSelect('orders.delivery', 'delivery')
+        .where('orders."orderId" like :query', {
+          query: `%${query?.toString()}%`
         })
-      )
-      .skip(skip)
-      .take(page)
-      .getManyAndCount()
-    return res.status(200).json({ orders, count })
-  } else {
-    const [orders, count] = await getConnection()
-      .getRepository(Order)
-      .createQueryBuilder('orders')
-      .leftJoinAndSelect('orders.outlet', 'outlet')
-      .leftJoinAndSelect('orders.agent', 'agent')
-      .leftJoinAndSelect('orders.invoice', 'invoice')
-      .leftJoinAndSelect('orders.delivery', 'delivery')
-      .where('stock."orderNumber" like :query', {
-        query: `%${query?.toString()}%`
-      })
-      .skip(skip)
-      .take(page)
-      .getManyAndCount()
-    return res.status(200).json({ orders, count })
+        .orWhere('orders."orderNumber" like :query', {
+          query: `%${query?.toString()}%`
+        })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ orders, count })
+    }
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
   }
 })
 
@@ -149,19 +168,45 @@ router.delete(
   async (req: Request, res: Response) => {
     const id: string = req.params.id
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .delete()
-      .from(Order)
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(Order)
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
 
-    if (queryResult.affected !== 1) {
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
       return res.sendStatus(500)
     }
-    return res.sendStatus(204)
+    return res.sendStatus(200)
+  }
+)
+
+router.post(
+  '/orders/bulk',
+  authorization,
+  async (req: Request, res: Response) => {
+    const inputs: __Order__[] = req.body
+    try {
+      await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Order)
+        .values(inputs)
+        .execute()
+
+      return res.sendStatus(201)
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
   }
 )
 

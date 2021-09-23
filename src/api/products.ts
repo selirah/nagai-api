@@ -32,7 +32,6 @@ router.post('/products', authorization, async (req: Request, res: Response) => {
     return res.status(400).json({ errors })
   }
 
-  let product: __Product__ | undefined
   const productId = `${inputs.productName
     .substring(0, 3)
     .toUpperCase()}${generateRandomNumbers()}`
@@ -51,13 +50,12 @@ router.post('/products', authorization, async (req: Request, res: Response) => {
       .returning('*')
       .execute()
 
-    product = queryResult.raw[0]
-
-    if (!product) {
+    if (!queryResult.raw[0]) {
       return res.sendStatus(500)
     }
   } catch (err) {
     console.log(err)
+    return res.sendStatus(500)
   }
 
   return res.sendStatus(201)
@@ -94,6 +92,7 @@ router.put(
       }
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
 
     return res.sendStatus(200)
@@ -202,6 +201,7 @@ router.delete(
       }
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
     return res.sendStatus(200)
   }
@@ -245,11 +245,12 @@ router.post(
         .into(Product)
         .values(inputs)
         .execute()
+
+      return res.sendStatus(201)
     } catch (err) {
       console.log(err)
+      return res.sendStatus(500)
     }
-
-    return res.sendStatus(201)
   }
 )
 

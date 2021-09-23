@@ -18,7 +18,6 @@ router.post(
       return res.status(400).json({ errors })
     }
 
-    let userTerritory: __UserTerritory__
     try {
       const queryResult = await getConnection()
         .createQueryBuilder()
@@ -31,8 +30,7 @@ router.post(
         .returning('*')
         .execute()
 
-      userTerritory = queryResult.raw[0]
-      if (!userTerritory) {
+      if (!queryResult.raw[0]) {
         return res.sendStatus(500)
       }
     } catch (err) {
