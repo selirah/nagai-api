@@ -86,9 +86,34 @@ router.get('/orders', authorization, async (req: Request, res: Response) => {
   const query = req.query.query
   const fromDate = req.query.fromDate
   const toDate = req.query.toDate
+  const status = req.query.status
 
   try {
-    if (!isEmpty(fromDate) && !isEmpty(toDate)) {
+    if (!isEmpty(fromDate) && !isEmpty(toDate) && status !== undefined) {
+      const [orders, count] = await getConnection()
+        .getRepository(Order)
+        .createQueryBuilder('orders')
+        .leftJoinAndSelect('orders.outlet', 'outlet')
+        .leftJoinAndSelect('orders.agent', 'agent')
+        .leftJoinAndSelect('orders.invoice', 'invoice')
+        .leftJoinAndSelect('orders.delivery', 'delivery')
+        .where('orders."status" = :status', { status: status })
+        .andWhere(`orders.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
+        .andWhere(
+          new Brackets((sqb) => {
+            sqb.where('orders."orderId" like :query', {
+              query: `%${query?.toString()}%`
+            })
+            sqb.orWhere('orders."orderNumber" like :query', {
+              query: `%${query?.toString()}%`
+            })
+          })
+        )
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ orders, count })
+    } else if (!isEmpty(fromDate) && !isEmpty(toDate) && status === undefined) {
       const [orders, count] = await getConnection()
         .getRepository(Order)
         .createQueryBuilder('orders')
@@ -97,6 +122,29 @@ router.get('/orders', authorization, async (req: Request, res: Response) => {
         .leftJoinAndSelect('orders.invoice', 'invoice')
         .leftJoinAndSelect('orders.delivery', 'delivery')
         .where(`orders.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
+        .andWhere(
+          new Brackets((sqb) => {
+            sqb.where('orders."orderId" like :query', {
+              query: `%${query?.toString()}%`
+            })
+            sqb.orWhere('orders."orderNumber" like :query', {
+              query: `%${query?.toString()}%`
+            })
+          })
+        )
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ orders, count })
+    } else if (isEmpty(fromDate) && isEmpty(toDate) && status !== undefined) {
+      const [orders, count] = await getConnection()
+        .getRepository(Order)
+        .createQueryBuilder('orders')
+        .leftJoinAndSelect('orders.outlet', 'outlet')
+        .leftJoinAndSelect('orders.agent', 'agent')
+        .leftJoinAndSelect('orders.invoice', 'invoice')
+        .leftJoinAndSelect('orders.delivery', 'delivery')
+        .where('orders."status" = :status', { status: status })
         .andWhere(
           new Brackets((sqb) => {
             sqb.where('orders."orderId" like :query', {

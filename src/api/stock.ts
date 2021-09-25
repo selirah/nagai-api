@@ -192,7 +192,8 @@ router.get(
       stock = await getConnection()
         .getRepository(Stock)
         .createQueryBuilder('stock')
-        .where('"productId" = :id', {
+        .leftJoinAndSelect('stock.product', 'product')
+        .where('stock."productId" = :id', {
           id: productId
         })
         .getMany()

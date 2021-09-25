@@ -7,6 +7,7 @@ export class __Product__ {
   productName: string
   categoryId: number
   manufacturerId: number
+  avatar: string
   category: __Category__
   manufacturer: __Manufacturer__
   stock: __Stock__[]

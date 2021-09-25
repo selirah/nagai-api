@@ -7,6 +7,7 @@ export class __Order__ {
   orderTotal: number
   outletId: number
   agentId: number
+  status: string
   createdAt: Date
   updatedAt: Date
 }

@@ -28,6 +28,9 @@ export class Product extends BaseEntity {
   @Column()
   manufacturerId: number
 
+  @Column({ nullable: true })
+  avatar: string
+
   @ManyToOne(() => Category, (category) => category.products)
   @JoinColumn({ name: 'categoryId' })
   category: Category

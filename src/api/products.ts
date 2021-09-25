@@ -45,7 +45,8 @@ router.post('/products', authorization, async (req: Request, res: Response) => {
         id: productId,
         productName: inputs.productName.toLowerCase(),
         categoryId: inputs.categoryId,
-        manufacturerId: inputs.manufacturerId
+        manufacturerId: inputs.manufacturerId,
+        avatar: inputs.avatar
       })
       .returning('*')
       .execute()
@@ -80,7 +81,8 @@ router.put(
         .set({
           productName: inputs.productName,
           categoryId: inputs.categoryId,
-          manufacturerId: inputs.manufacturerId
+          manufacturerId: inputs.manufacturerId,
+          avatar: inputs.avatar
         })
         .where('"id" = :id', {
           id: id

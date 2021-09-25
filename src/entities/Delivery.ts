@@ -21,7 +21,7 @@ export class Delivery extends BaseEntity {
   deliveryNumber: string
 
   @Column()
-  orderId: string
+  orderNumber: string
 
   @Column()
   dispatchId: number
@@ -36,7 +36,7 @@ export class Delivery extends BaseEntity {
   reason: string
 
   @OneToOne(() => Order)
-  @JoinColumn({ name: 'orderId' })
+  @JoinColumn({ name: 'orderNumber' })
   order: Order
 
   @ManyToOne(() => User, (user) => user.deliveries)

@@ -15,6 +15,12 @@ import { User } from './User'
 import { Invoice } from './Invoice'
 import { Delivery } from './Delivery'
 
+export enum Status {
+  PENDING = 'PENDING',
+  DELIVERED = 'DELIVERED',
+  FAILED = 'FAILED'
+}
+
 @Entity()
 export class Order extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
@@ -34,6 +40,9 @@ export class Order extends BaseEntity {
 
   @Column()
   agentId: number
+
+  @Column({ type: 'enum', enum: Status, default: Status.PENDING })
+  status: string
 
   @ManyToOne(() => Outlet, (outlet) => outlet.orders)
   @JoinColumn({ name: 'outletId' })
