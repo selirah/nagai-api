@@ -1,8 +1,8 @@
 import { router /*, sendEmail*/ } from '../utils'
 import { Request, Response } from 'express'
-import { Order } from '../entities/Order'
+import { Order, Status } from '../entities/Order'
 import { authorization } from '../middleware/auth'
-import { getConnection, Brackets } from 'typeorm'
+import { getConnection } from 'typeorm'
 import { validateOrder } from '../validations'
 import { __Order__ } from '../models/__Order__'
 import { __Item__ } from '../models/__Item__'
@@ -22,7 +22,7 @@ router.post('/orders', authorization, async (req: Request, res: Response) => {
       .insert()
       .into(Order)
       .values({
-        orderNumber: inputs.orderNumber,
+        id: inputs.orderNumber,
         items: inputs.items,
         orderTotal: inputs.orderTotal,
         outletId: inputs.outletId,
@@ -58,11 +58,8 @@ router.put(
         .createQueryBuilder()
         .update(Order)
         .set({
-          orderNumber: inputs.orderNumber,
-          items: inputs.items,
-          orderTotal: inputs.orderTotal,
-          outletId: inputs.outletId,
-          agentId: inputs.agentId
+          status: inputs.status.toUpperCase(),
+          comments: inputs.comments
         })
         .where('"id" = :id', {
           id: id
@@ -89,7 +86,7 @@ router.get('/orders', authorization, async (req: Request, res: Response) => {
   const status = req.query.status
 
   try {
-    if (!isEmpty(fromDate) && !isEmpty(toDate) && status !== undefined) {
+    if (!isEmpty(fromDate) && !isEmpty(toDate) && status !== Status.ALL) {
       const [orders, count] = await getConnection()
         .getRepository(Order)
         .createQueryBuilder('orders')
@@ -99,21 +96,18 @@ router.get('/orders', authorization, async (req: Request, res: Response) => {
         .leftJoinAndSelect('orders.delivery', 'delivery')
         .where('orders."status" = :status', { status: status })
         .andWhere(`orders.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
-        .andWhere(
-          new Brackets((sqb) => {
-            sqb.where('orders."orderId" like :query', {
-              query: `%${query?.toString()}%`
-            })
-            sqb.orWhere('orders."orderNumber" like :query', {
-              query: `%${query?.toString()}%`
-            })
-          })
-        )
+        .andWhere('orders."id" like :query', {
+          query: `%${query?.toString()}%`
+        })
         .skip(skip)
         .take(page)
         .getManyAndCount()
       return res.status(200).json({ orders, count })
-    } else if (!isEmpty(fromDate) && !isEmpty(toDate) && status === undefined) {
+    } else if (
+      !isEmpty(fromDate) &&
+      !isEmpty(toDate) &&
+      status === Status.ALL
+    ) {
       const [orders, count] = await getConnection()
         .getRepository(Order)
         .createQueryBuilder('orders')
@@ -122,21 +116,14 @@ router.get('/orders', authorization, async (req: Request, res: Response) => {
         .leftJoinAndSelect('orders.invoice', 'invoice')
         .leftJoinAndSelect('orders.delivery', 'delivery')
         .where(`orders.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
-        .andWhere(
-          new Brackets((sqb) => {
-            sqb.where('orders."orderId" like :query', {
-              query: `%${query?.toString()}%`
-            })
-            sqb.orWhere('orders."orderNumber" like :query', {
-              query: `%${query?.toString()}%`
-            })
-          })
-        )
+        .andWhere('orders."id" like :query', {
+          query: `%${query?.toString()}%`
+        })
         .skip(skip)
         .take(page)
         .getManyAndCount()
       return res.status(200).json({ orders, count })
-    } else if (isEmpty(fromDate) && isEmpty(toDate) && status !== undefined) {
+    } else if (isEmpty(fromDate) && isEmpty(toDate) && status !== Status.ALL) {
       const [orders, count] = await getConnection()
         .getRepository(Order)
         .createQueryBuilder('orders')
@@ -145,16 +132,9 @@ router.get('/orders', authorization, async (req: Request, res: Response) => {
         .leftJoinAndSelect('orders.invoice', 'invoice')
         .leftJoinAndSelect('orders.delivery', 'delivery')
         .where('orders."status" = :status', { status: status })
-        .andWhere(
-          new Brackets((sqb) => {
-            sqb.where('orders."orderId" like :query', {
-              query: `%${query?.toString()}%`
-            })
-            sqb.orWhere('orders."orderNumber" like :query', {
-              query: `%${query?.toString()}%`
-            })
-          })
-        )
+        .andWhere('orders."id" like :query', {
+          query: `%${query?.toString()}%`
+        })
         .skip(skip)
         .take(page)
         .getManyAndCount()
@@ -167,10 +147,7 @@ router.get('/orders', authorization, async (req: Request, res: Response) => {
         .leftJoinAndSelect('orders.agent', 'agent')
         .leftJoinAndSelect('orders.invoice', 'invoice')
         .leftJoinAndSelect('orders.delivery', 'delivery')
-        .where('orders."orderId" like :query', {
-          query: `%${query?.toString()}%`
-        })
-        .orWhere('orders."orderNumber" like :query', {
+        .where('orders."id" like :query', {
           query: `%${query?.toString()}%`
         })
         .skip(skip)
@@ -185,24 +162,42 @@ router.get('/orders', authorization, async (req: Request, res: Response) => {
 })
 
 router.get(
-  '/orders/:outletId',
+  '/orders/:id',
   authorization,
   async (req: Request, res: Response) => {
     const page = req.query.page !== undefined ? +req.query.page : 10
     const skip = req.query.skip !== undefined ? +req.query.skip : 0
-    const outletId: string = req.params.outletId
+    const id: string = req.params.id
+    const type = req.query.type !== undefined ? req.query.type : 'agent'
 
     try {
-      const [orders, count] = await getConnection()
-        .getRepository(Order)
-        .createQueryBuilder('orders')
-        .leftJoinAndSelect('orders.agent', 'agent')
-        .where('orders."outletId" = :outletId', { outletId: outletId })
-        .skip(skip)
-        .take(page)
-        .getManyAndCount()
+      if (type === 'outlet') {
+        const [orders, count] = await getConnection()
+          .getRepository(Order)
+          .createQueryBuilder('orders')
+          .leftJoinAndSelect('orders.agent', 'agent')
+          .leftJoinAndSelect('orders.invoice', 'invoice')
+          .leftJoinAndSelect('orders.delivery', 'delivery')
+          .where('orders."outletId" = :outletId', { outletId: id })
+          .skip(skip)
+          .take(page)
+          .getManyAndCount()
 
-      return res.status(200).json({ orders, count })
+        return res.status(200).json({ orders, count })
+      } else {
+        const [orders, count] = await getConnection()
+          .getRepository(Order)
+          .createQueryBuilder('orders')
+          .leftJoinAndSelect('orders.outlet', 'outlet')
+          .leftJoinAndSelect('orders.invoice', 'invoice')
+          .leftJoinAndSelect('orders.delivery', 'delivery')
+          .where('orders."agentId" = :agentId', { agentId: id })
+          .skip(skip)
+          .take(page)
+          .getManyAndCount()
+
+        return res.status(200).json({ orders, count })
+      }
     } catch (err) {
       console.log(err)
       return res.sendStatus(500)

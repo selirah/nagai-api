@@ -8,6 +8,7 @@ export class __Order__ {
   outletId: number
   agentId: number
   status: string
+  comments: string
   createdAt: Date
   updatedAt: Date
 }

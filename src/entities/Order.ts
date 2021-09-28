@@ -1,7 +1,7 @@
 import {
   BaseEntity,
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
@@ -18,16 +18,14 @@ import { Delivery } from './Delivery'
 export enum Status {
   PENDING = 'PENDING',
   DELIVERED = 'DELIVERED',
-  FAILED = 'FAILED'
+  FAILED = 'FAILED',
+  ALL = 'ALL'
 }
 
 @Entity()
 export class Order extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn()
   id: string
-
-  @Column()
-  orderNumber: string
 
   @Column({ type: 'json' })
   items: Item
@@ -44,6 +42,9 @@ export class Order extends BaseEntity {
   @Column({ type: 'enum', enum: Status, default: Status.PENDING })
   status: string
 
+  @Column({ type: 'text', nullable: true })
+  comments: string
+
   @ManyToOne(() => Outlet, (outlet) => outlet.orders)
   @JoinColumn({ name: 'outletId' })
   outlet: Outlet
@@ -52,10 +53,10 @@ export class Order extends BaseEntity {
   @JoinColumn({ name: 'agentId' })
   agent: User
 
-  @OneToOne(() => Invoice)
+  @OneToOne(() => Invoice, (invoice) => invoice.order)
   invoice: Invoice
 
-  @OneToOne(() => Delivery)
+  @OneToOne(() => Delivery, (delivery) => delivery.order)
   delivery: Delivery
 
   @CreateDateColumn()

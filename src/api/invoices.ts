@@ -21,8 +21,8 @@ router.post('/invoices', authorization, async (req: Request, res: Response) => {
       .insert()
       .into(Invoice)
       .values({
-        invoiceNumber: inputs.invoiceNumber,
-        orderNumber: inputs.orderNumber,
+        id: inputs.invoiceNumber,
+        orderId: inputs.orderNumber,
         taxes: inputs.taxes,
         discount: inputs.discount,
         deliveryFee: inputs.deliveryFee,
@@ -57,8 +57,8 @@ router.put(
         .createQueryBuilder()
         .update(Invoice)
         .set({
-          invoiceNumber: inputs.invoiceNumber,
-          orderNumber: inputs.orderNumber,
+          id: inputs.invoiceNumber,
+          orderId: inputs.orderNumber,
           taxes: inputs.taxes,
           discount: inputs.discount,
           deliveryFee: inputs.deliveryFee,
@@ -176,3 +176,5 @@ router.post(
     }
   }
 )
+
+export { router as invoices }

@@ -7,7 +7,6 @@ import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
 import { validateDelivery } from '../validations'
 import { __Delivery__ } from '../models/__Delivery__'
-import moment from 'moment'
 
 enum UserType {
   dispatch = 'dispatch',
@@ -31,7 +30,7 @@ router.post(
       .insert()
       .into(Delivery)
       .values({
-        // orderId: inputs.orderId,
+        orderId: inputs.orderId,
         dispatchId: inputs.dispatchId
       })
       .returning('*')
@@ -71,11 +70,11 @@ router.put(
       .createQueryBuilder()
       .update(Delivery)
       .set({
-        // orderId: inputs.orderId,
+        orderId: inputs.orderId,
         dispatchId: inputs.dispatchId,
-        deliveryDate: moment(new Date()).format('YYYY-MM-DD HH:MM:SS'),
+        deliveryDate: inputs.deliveryDate,
         isDelivered: inputs.isDelivered,
-        reason: inputs.reason
+        comments: inputs.comments
       })
       .where('"id" = :id', {
         id: id

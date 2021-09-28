@@ -1,27 +1,24 @@
 import {
   BaseEntity,
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   OneToOne,
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
-  ManyToOne
+  ManyToOne,
+  PrimaryColumn
 } from 'typeorm'
 import { Order } from './Order'
 import { User } from './User'
 
 @Entity()
 export class Delivery extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn()
   id: string
 
   @Column()
-  deliveryNumber: string
-
-  @Column()
-  orderNumber: string
+  orderId: string
 
   @Column()
   dispatchId: number
@@ -33,10 +30,10 @@ export class Delivery extends BaseEntity {
   deliveryDate: Date
 
   @Column({ type: 'text', nullable: true })
-  reason: string
+  comments: string
 
-  @OneToOne(() => Order)
-  @JoinColumn({ name: 'orderNumber' })
+  @OneToOne(() => Order, (order) => order.delivery)
+  @JoinColumn({ name: 'orderId' })
   order: Order
 
   @ManyToOne(() => User, (user) => user.deliveries)

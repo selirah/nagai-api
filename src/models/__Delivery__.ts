@@ -2,10 +2,9 @@ export class __Delivery__ {
   id: string
   orderId: string
   dispatchId: number
-  agentId: number
   isDelivered: boolean
   deliveryDate: Date
-  reason: string
+  comments: string
   createdAt: Date
   updatedAt: Date
 }

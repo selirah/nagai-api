@@ -1,7 +1,7 @@
 import {
   BaseEntity,
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   OneToOne,
   CreateDateColumn,
@@ -13,14 +13,11 @@ import { Tax } from './Tax'
 
 @Entity()
 export class Invoice extends BaseEntity {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn()
   id: string
 
   @Column()
-  invoiceNumber: string
-
-  @Column()
-  orderNumber: string
+  orderId: string
 
   @Column({ type: 'json' })
   taxes: Tax[]
@@ -34,8 +31,8 @@ export class Invoice extends BaseEntity {
   @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
   finalAmount: number
 
-  @OneToOne(() => Order)
-  @JoinColumn({ name: 'orderNumber' })
+  @OneToOne(() => Order, (order) => order.invoice)
+  @JoinColumn({ name: 'orderId' })
   order: Order
 
   @CreateDateColumn()
