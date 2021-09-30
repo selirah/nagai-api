@@ -6,10 +6,12 @@ import {
   OneToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn
+  JoinColumn,
+  ManyToOne
 } from 'typeorm'
 import { Order } from './Order'
 import { Tax } from './Tax'
+import { Outlet } from './Outlet'
 
 @Entity()
 export class Invoice extends BaseEntity {
@@ -18,6 +20,9 @@ export class Invoice extends BaseEntity {
 
   @Column()
   orderId: string
+
+  @Column()
+  outletId: number
 
   @Column({ type: 'json' })
   taxes: Tax[]
@@ -34,6 +39,10 @@ export class Invoice extends BaseEntity {
   @OneToOne(() => Order, (order) => order.invoice)
   @JoinColumn({ name: 'orderId' })
   order: Order
+
+  @ManyToOne(() => Outlet, (outlet) => outlet.orders)
+  @JoinColumn({ name: 'outletId' })
+  outlet: Outlet
 
   @CreateDateColumn()
   createdAt: Date

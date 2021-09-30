@@ -11,6 +11,7 @@ import {
 } from 'typeorm'
 import { Territory } from './Territory'
 import { Order } from './Order'
+import { Invoice } from './Invoice'
 
 @Entity()
 export class Outlet extends BaseEntity {
@@ -48,6 +49,9 @@ export class Outlet extends BaseEntity {
   territoryId: number
 
   @Column({ nullable: true })
+  region: string
+
+  @Column({ nullable: true })
   photo: string
 
   @Column({ type: 'json', nullable: true })
@@ -62,6 +66,9 @@ export class Outlet extends BaseEntity {
 
   @OneToMany(() => Order, (order) => order.outlet)
   orders: Order[]
+
+  @OneToMany(() => Invoice, (invoice) => invoice.outlet)
+  invoices: Invoice[]
 
   @CreateDateColumn()
   createdAt: Date

@@ -23,6 +23,7 @@ router.post('/invoices', authorization, async (req: Request, res: Response) => {
       .values({
         id: inputs.invoiceNumber,
         orderId: inputs.orderNumber,
+        outletId: inputs.outletId,
         taxes: inputs.taxes,
         discount: inputs.discount,
         deliveryFee: inputs.deliveryFee,
@@ -59,6 +60,7 @@ router.put(
         .set({
           id: inputs.invoiceNumber,
           orderId: inputs.orderNumber,
+          outletId: inputs.outletId,
           taxes: inputs.taxes,
           discount: inputs.discount,
           deliveryFee: inputs.deliveryFee,
@@ -93,13 +95,14 @@ router.get('/invoices', authorization, async (req: Request, res: Response) => {
         .getRepository(Invoice)
         .createQueryBuilder('invoices')
         .leftJoinAndSelect('invoices.order', 'order')
+        .leftJoinAndSelect('invoices.outlet', 'outlet')
         .where(`invoices.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
         .andWhere(
           new Brackets((sqb) => {
-            sqb.where('invoices."invoiceNumber" like :query', {
+            sqb.where('invoices."id" like :query', {
               query: `%${query?.toString()}%`
             })
-            sqb.orWhere('invoices."orderNumber" like :query', {
+            sqb.orWhere('invoices."orderId" like :query', {
               query: `%${query?.toString()}%`
             })
           })
@@ -113,10 +116,11 @@ router.get('/invoices', authorization, async (req: Request, res: Response) => {
         .getRepository(Invoice)
         .createQueryBuilder('invoices')
         .leftJoinAndSelect('invoices.order', 'order')
-        .where('invoices."invoiceNumber" like :query', {
+        .leftJoinAndSelect('invoices.outlet', 'outlet')
+        .where('invoices."id" like :query', {
           query: `%${query?.toString()}%`
         })
-        .orWhere('invoices."orderNumber" like :query', {
+        .orWhere('invoices."orderId" like :query', {
           query: `%${query?.toString()}%`
         })
         .skip(skip)
@@ -129,6 +133,33 @@ router.get('/invoices', authorization, async (req: Request, res: Response) => {
     return res.sendStatus(500)
   }
 })
+
+router.get(
+  '/invoices/:id',
+  authorization,
+  async (req: Request, res: Response) => {
+    const page = req.query.page !== undefined ? +req.query.page : 10
+    const skip = req.query.skip !== undefined ? +req.query.skip : 0
+    const id: string = req.params.id
+
+    try {
+      const [orders, count] = await getConnection()
+        .getRepository(Invoice)
+        .createQueryBuilder('invoices')
+        .leftJoinAndSelect('invoices.order', 'order')
+        .leftJoinAndSelect('invoices.outlet', 'outlet')
+        .where('invoices."outletId" = :outletId', { outletId: id })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+
+      return res.status(200).json({ orders, count })
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
+  }
+)
 
 router.delete(
   '/invoices/:id',

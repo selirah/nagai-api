@@ -4,6 +4,7 @@ export class __Invoice__ {
   id: string
   invoiceNumber: string
   orderNumber: string
+  outletId: number
   taxes: __Tax__[]
   discount: number
   deliveryFee: number

@@ -47,6 +47,15 @@ export const validateOutlet = (inputs: __Outlet__) => {
     ]
   }
 
+  if (validator.isEmpty(inputs.mobile)) {
+    return [
+      {
+        field: 'email',
+        message: 'Phone number is required'
+      }
+    ]
+  }
+
   if (
     !validator.isEmpty(inputs.mobile) &&
     !validator.isLength(inputs.mobile, { min: 10, max: 13 })
@@ -103,6 +112,15 @@ export const validateOutlet = (inputs: __Outlet__) => {
       {
         field: 'territoryId',
         message: 'Territory is required'
+      }
+    ]
+  }
+
+  if (validator.isEmpty(`${inputs.region}`)) {
+    return [
+      {
+        field: 'region',
+        message: 'Region is required'
       }
     ]
   }

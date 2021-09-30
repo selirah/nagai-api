@@ -26,6 +26,12 @@ export class Delivery extends BaseEntity {
   @Column({ default: false })
   isDelivered: boolean
 
+  @Column({ type: 'json', nullable: true })
+  coordinates: {
+    lat: number
+    lng: number
+  }
+
   @Column({ nullable: true })
   deliveryDate: Date
 

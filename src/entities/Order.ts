@@ -19,6 +19,7 @@ export enum Status {
   PENDING = 'PENDING',
   DELIVERED = 'DELIVERED',
   FAILED = 'FAILED',
+  TRANSIT = 'TRANSIT',
   ALL = 'ALL'
 }
 

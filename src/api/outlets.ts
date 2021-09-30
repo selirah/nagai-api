@@ -30,7 +30,8 @@ router.post('/outlets', authorization, async (req: Request, res: Response) => {
         subLocality: inputs.subLocality.toLowerCase(),
         landmark: inputs.landmark,
         coordinates: inputs.coordinates,
-        territoryId: inputs.territoryId
+        territoryId: inputs.territoryId,
+        region: inputs.region
       })
       .returning('*')
       .execute()
@@ -76,6 +77,7 @@ router.put(
           landmark: inputs.landmark,
           coordinates: inputs.coordinates,
           territoryId: inputs.territoryId,
+          region: inputs.region,
           photo: inputs.photo
         })
         .where('"id" = :id', {

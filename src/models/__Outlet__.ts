@@ -10,6 +10,7 @@ export class __Outlet__ {
   subLocality: string
   landmark: string
   territoryId: number
+  region: string
   photo: string
   coordinates: {
     lat: number
