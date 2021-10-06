@@ -10,6 +10,14 @@ export const validateTransaction = (inputs: __Transaction__) => {
       }
     ]
   }
+  if (validator.isEmpty(`${inputs.invoiceId}`)) {
+    return [
+      {
+        field: 'invoice',
+        message: 'Invoice field is required'
+      }
+    ]
+  }
   if (validator.isEmpty(`${inputs.amount}`)) {
     return [
       {
@@ -23,18 +31,6 @@ export const validateTransaction = (inputs: __Transaction__) => {
       {
         field: 'amountPaid',
         message: 'Amount paid is required'
-      }
-    ]
-  }
-  return null
-}
-
-export const orderExists = (error: any) => {
-  if (error.code === '23505' && error.detail.includes('orderId')) {
-    return [
-      {
-        field: 'order',
-        message: `This order has been successfully delivered already`
       }
     ]
   }

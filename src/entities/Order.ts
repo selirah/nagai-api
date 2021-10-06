@@ -20,7 +20,8 @@ export enum Status {
   DELIVERED = 'DELIVERED',
   FAILED = 'FAILED',
   TRANSIT = 'TRANSIT',
-  ALL = 'ALL'
+  ALL = 'ALL',
+  DISPATCH = 'DISPATCH'
 }
 
 @Entity()
@@ -29,7 +30,7 @@ export class Order extends BaseEntity {
   id: string
 
   @Column({ type: 'json' })
-  items: Item
+  items: Item[]
 
   @Column('decimal', { precision: 15, scale: 2, default: 0.0 })
   orderTotal: number

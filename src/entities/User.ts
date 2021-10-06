@@ -17,7 +17,8 @@ import { UserTerritory } from './UserTerritory'
 export enum UserRole {
   ADMIN = 'admin',
   AGENT = 'agent',
-  DISPATCH = 'dispatch'
+  DISPATCH = 'dispatch',
+  ALL = 'all'
 }
 
 @Entity()

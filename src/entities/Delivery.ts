@@ -7,14 +7,14 @@ import {
   UpdateDateColumn,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn
+  PrimaryGeneratedColumn
 } from 'typeorm'
 import { Order } from './Order'
 import { User } from './User'
 
 @Entity()
 export class Delivery extends BaseEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string
 
   @Column()

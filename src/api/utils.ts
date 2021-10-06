@@ -6,6 +6,7 @@ import { Unit } from '../entities/Unit'
 import { Territory } from '../entities/Territory'
 import { Outlet } from '../entities/Outlet'
 import { Tax } from '../entities/Tax'
+import { User, UserRole } from '../entities/User'
 import { getConnection } from 'typeorm'
 
 router.get('/utils/regions', async (_: Request, res: Response) => {
@@ -82,6 +83,31 @@ router.get('/utils/taxes', async (_: Request, res: Response) => {
       .getMany()
 
     return res.status(200).json(taxes)
+  } catch (err) {
+    return res.sendStatus(500)
+  }
+})
+
+router.get('/utils/users', async (req: Request, res: Response) => {
+  const role = req.query.role
+
+  try {
+    if (role !== UserRole.ALL) {
+      const users = await getConnection()
+        .getRepository(User)
+        .createQueryBuilder('users')
+        .where('users."role" = :role', { role: role })
+        .getMany()
+
+      return res.status(200).json(users)
+    } else {
+      const users = await getConnection()
+        .getRepository(User)
+        .createQueryBuilder('users')
+        .getMany()
+
+      return res.status(200).json(users)
+    }
   } catch (err) {
     return res.sendStatus(500)
   }

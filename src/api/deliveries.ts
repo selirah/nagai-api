@@ -1,17 +1,12 @@
-import { router, sendEmail, sendSMS } from '../utils'
+import { router } from '../utils'
 import { Request, Response } from 'express'
 import { Delivery } from '../entities/Delivery'
-import { Order } from '../entities/Order'
-import { Outlet } from '../entities/Outlet'
+import { Order, Status } from '../entities/Order'
 import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
 import { validateDelivery } from '../validations'
 import { __Delivery__ } from '../models/__Delivery__'
-
-enum UserType {
-  dispatch = 'dispatch',
-  agent = 'agent'
-}
+import { isEmpty } from '../validations/isEmpty'
 
 router.post(
   '/deliveries',
@@ -24,33 +19,44 @@ router.post(
       return res.status(400).json({ errors })
     }
 
-    let delivery: __Delivery__
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .insert()
-      .into(Delivery)
-      .values({
-        orderId: inputs.orderId,
-        dispatchId: inputs.dispatchId
-      })
-      .returning('*')
-      .execute()
+    const findOne = await Delivery.findOne({
+      where: {
+        orderId: inputs.orderId
+      }
+    })
 
-    delivery = queryResult.raw[0]
-    if (!delivery) {
-      return res.sendStatus(500)
+    if (findOne) {
+      const errors = [
+        {
+          field: 'orderId',
+          message: `Order number ${inputs.orderId} has already been assigned to a dispatch`
+        }
+      ]
+      return res.status(400).json({ errors })
     }
 
-    const dlvy = await getConnection()
-      .getRepository(Delivery)
-      .createQueryBuilder('delivery')
-      .innerJoinAndSelect('delivery.order', 'order')
-      .where('"id" = :id', {
-        id: delivery.id
-      })
-      .getOne()
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .insert()
+        .into(Delivery)
+        .values({
+          orderId: inputs.orderId,
+          dispatchId: inputs.dispatchId,
+          isDelivered: false
+        })
+        .returning('*')
+        .execute()
 
-    return res.status(201).json(dlvy)
+      if (!queryResult.raw[0]) {
+        return res.sendStatus(500)
+      }
+      await Order.update({ id: inputs.orderId }, { status: Status.DISPATCH })
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
+    return res.sendStatus(201)
   }
 )
 
@@ -66,57 +72,31 @@ router.put(
       return res.status(400).json({ errors })
     }
 
-    const queryResult = await getConnection()
-      .createQueryBuilder()
-      .update(Delivery)
-      .set({
-        orderId: inputs.orderId,
-        dispatchId: inputs.dispatchId,
-        deliveryDate: inputs.deliveryDate,
-        isDelivered: inputs.isDelivered,
-        comments: inputs.comments
-      })
-      .where('"id" = :id', {
-        id: id
-      })
-      .execute()
-
-    if (queryResult.affected !== 1) {
-      return res.sendStatus(500)
-    }
-    // check if order is delivered
-    if (inputs.isDelivered) {
-      // send email and sms to client about order delivery
-      const order = await Order.findOne({
-        where: { orderId: inputs.orderId }
-      })
-      if (order) {
-        const outlet = await Outlet.findOne({
-          where: { outletId: order.outletId }
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .update(Delivery)
+        .set({
+          orderId: inputs.orderId,
+          dispatchId: inputs.dispatchId,
+          deliveryDate: inputs.deliveryDate,
+          isDelivered: inputs.isDelivered,
+          comments: inputs.comments,
+          coordinates: inputs.coordinates
         })
-        if (outlet) {
-          const emailMessage = `<h2>Hello ${outlet.outletName}, your order ${order.id} has been successfully delivered. Cheers</h2>`
-          const smsMessage = `Hello ${outlet.outletName}, your order ${order.id} has been successfully delivered. Cheers`
-          await sendEmail(outlet.email, emailMessage)
-          await sendSMS(outlet.mobile, smsMessage)
-        }
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
+
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
       }
-    }
-
-    const delivery = await getConnection()
-      .getRepository(Delivery)
-      .createQueryBuilder('delivery')
-      .innerJoinAndSelect('delivery.order', 'order')
-      .where('"id" = :id', {
-        id: id
-      })
-      .getOne()
-
-    if (!delivery) {
+    } catch (err) {
+      console.log(err)
       return res.sendStatus(500)
     }
-
-    return res.status(200).json(delivery)
+    return res.sendStatus(200)
   }
 )
 
@@ -124,59 +104,105 @@ router.get(
   '/deliveries',
   authorization,
   async (req: Request, res: Response) => {
-    const limit = req.query.limit !== undefined ? +req.query.limit : 100
-    const offset = req.query.offset !== undefined ? +req.query.offset : 0
-    const deliveries = await getConnection()
-      .getRepository(Delivery)
-      .createQueryBuilder('deliveries')
-      .innerJoinAndSelect('deliveries.order', 'order')
-      .skip(offset)
-      .take(limit)
-      .getMany()
+    const page = req.query.page !== undefined ? +req.query.page : 10
+    const skip = req.query.skip !== undefined ? +req.query.skip : 0
+    const query = req.query.query
+    const fromDate = req.query.fromDate
+    const toDate = req.query.toDate
 
-    return res.status(200).json(deliveries)
+    try {
+      if (!isEmpty(fromDate) && !isEmpty(toDate)) {
+        const [deliveries, count] = await getConnection()
+          .getRepository(Delivery)
+          .createQueryBuilder('deliveries')
+          .leftJoinAndSelect('deliveries.order', 'order')
+          .leftJoinAndSelect('deliveries.dispatch', 'dispatch')
+          .where(`deliveries.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
+          .andWhere('deliveries."orderId" like :query', {
+            query: `%${query?.toString()}%`
+          })
+          .skip(skip)
+          .take(page)
+          .getManyAndCount()
+        return res.status(200).json({ deliveries, count })
+      } else {
+        const [deliveries, count] = await getConnection()
+          .getRepository(Delivery)
+          .createQueryBuilder('deliveries')
+          .leftJoinAndSelect('deliveries.order', 'order')
+          .leftJoinAndSelect('deliveries.dispatch', 'dispatch')
+          .where('deliveries."orderId" like :query', {
+            query: `%${query?.toString()}%`
+          })
+          .skip(skip)
+          .take(page)
+          .getManyAndCount()
+        return res.status(200).json({ deliveries, count })
+      }
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
   }
 )
 
 router.get(
-  '/deliveries/:type/:id',
+  '/deliveries/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const limit = req.query.limit !== undefined ? +req.query.limit : 100
-    const offset = req.query.offset !== undefined ? +req.query.offset : 0
-    const type: string = req.params.type
+    const page = req.query.page !== undefined ? +req.query.page : 10
+    const skip = req.query.skip !== undefined ? +req.query.skip : 0
     const id: number = parseInt(req.params.id)
 
-    let deliveries
-    switch (type) {
-      case UserType.dispatch:
-        deliveries = await getConnection()
-          .getRepository(Delivery)
-          .createQueryBuilder('deliveries')
-          .innerJoinAndSelect('deliveries.order', 'order')
-          .where('deliveries."dispatchId" = :dispatchId', {
-            dispatchId: id
-          })
-          // .orderBy('deliveries."createdAt"', 'DESC')
-          .skip(offset)
-          .take(limit)
-          .getMany()
-        break
-      case UserType.agent:
-        deliveries = await getConnection()
-          .getRepository(Delivery)
-          .createQueryBuilder('deliveries')
-          .innerJoinAndSelect('deliveries.order', 'order')
-          .where('deliveries."agentId" = :agentId', {
-            agentId: id
-          })
-          // .orderBy('deliveries."createdAt"', 'DESC')
-          .skip(offset)
-          .take(limit)
-          .getMany()
-        break
+    try {
+      const [deliveries, count] = await getConnection()
+        .getRepository(Delivery)
+        .createQueryBuilder('deliveries')
+        .leftJoinAndSelect('deliveries.order', 'order')
+        .where('deliveries."dispatchId" = :dispatchId', {
+          dispatchId: id
+        })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ deliveries, count })
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
     }
-    return res.status(200).json(deliveries)
+  }
+)
+
+router.delete(
+  '/deliveries/:id',
+  authorization,
+  async (req: Request, res: Response) => {
+    const id: string = req.params.id
+
+    const findOne = await Delivery.findOne({ where: { id: id } })
+
+    if (findOne) {
+      await Order.update({ id: findOne.orderId }, { status: Status.PENDING })
+    }
+
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .delete()
+        .from(Delivery)
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
+
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
+    return res.sendStatus(200)
   }
 )
 
