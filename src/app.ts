@@ -15,7 +15,7 @@ import {
   orders,
   userTerritories,
   deliveries,
-  transactions,
+  sales,
   payments,
   stockTrails,
   invoices
@@ -46,7 +46,7 @@ app.use(api, stock)
 app.use(api, orders)
 app.use(api, userTerritories)
 app.use(api, deliveries)
-app.use(api, transactions)
+app.use(api, sales)
 app.use(api, payments)
 app.use(api, stockTrails)
 app.use(api, stockTrails)

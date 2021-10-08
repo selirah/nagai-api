@@ -1,12 +1,11 @@
 import { router } from '../utils'
 import { Request, Response } from 'express'
 import { Payment } from '../entities/Payment'
-import { Transaction } from '../entities/Transaction'
+import { Sale } from '../entities/Sale'
 import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
 import { validatePayments } from '../validations'
 import { __Payment__ } from '../models/__Payment__'
-import moment from 'moment'
 
 router.post('/payments', authorization, async (req: Request, res: Response) => {
   const inputs: __Payment__ = req.body
@@ -22,8 +21,7 @@ router.post('/payments', authorization, async (req: Request, res: Response) => {
     .insert()
     .into(Payment)
     .values({
-      id: `PAY-${moment(new Date()).format('YMDHHMMSS')}`,
-      transactionId: inputs.transactionId,
+      saleId: inputs.saleId,
       amount: inputs.amount,
       payer: inputs.payer,
       payerPhone: inputs.payerPhone,
@@ -37,18 +35,18 @@ router.post('/payments', authorization, async (req: Request, res: Response) => {
     return res.sendStatus(500)
   }
   // update the transaction entity with this new payment made
-  const updateTransaction = await getConnection()
+  const updateSale = await getConnection()
     .createQueryBuilder()
-    .update(Transaction)
+    .update(Sale)
     .set({
       amountPaid: () => `"amountPaid" + ${inputs.amount}`
     })
-    .where('"transactionId" = :transactionId', {
-      transactionId: payment.transactionId
+    .where('"saleId" = :saleId', {
+      saleId: payment.saleId
     })
     .execute()
 
-  if (updateTransaction.affected !== 1) {
+  if (updateSale.affected !== 1) {
     return res.sendStatus(500)
   }
   return res.status(201).json(payment)
@@ -69,18 +67,18 @@ router.get('/payments', authorization, async (req: Request, res: Response) => {
 })
 
 router.get(
-  '/payments/:transactionId',
+  '/payments/:saleId',
   authorization,
   async (req: Request, res: Response) => {
     const limit = req.query.limit !== undefined ? +req.query.limit : 100
     const offset = req.query.offset !== undefined ? +req.query.offset : 0
-    const transactionId: string = req.params.transactionId
+    const saleId: string = req.params.transactionId
 
     const products = await getConnection()
       .getRepository(Payment)
       .createQueryBuilder('payments')
-      .where('payments."transactionId" = :transactionId', {
-        transactionId: transactionId
+      .where('payments."saleId" = :saleId', {
+        saleId: saleId
       })
       .skip(offset)
       .take(limit)

@@ -1,23 +1,23 @@
 import {
   BaseEntity,
   Entity,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn
 } from 'typeorm'
-import { Transaction } from './Transaction'
+import { Sale } from './Sale'
 import { User } from './User'
 
 @Entity()
 export class Payment extends BaseEntity {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn('uuid')
   id: string
 
   @Column()
-  transactionId: string
+  saleId: string
 
   @Column('decimal', { precision: 15, scale: 2 })
   amount: number
@@ -31,9 +31,9 @@ export class Payment extends BaseEntity {
   @Column()
   payeeId: number
 
-  @ManyToOne(() => Transaction, (transaction) => transaction.payments)
-  @JoinColumn({ name: 'transactionId' })
-  transaction: Transaction
+  @ManyToOne(() => Sale, (sale) => sale.payments)
+  @JoinColumn({ name: 'saleId' })
+  sale: Sale
 
   @ManyToOne(() => User, (payee) => payee.payments)
   @JoinColumn({ name: 'payeeId' })

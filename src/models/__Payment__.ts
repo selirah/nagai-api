@@ -1,6 +1,6 @@
 export class __Payment__ {
   id: string
-  transactionId: string
+  saleId: string
   amount: number
   payer: string
   payerPhone: string
