@@ -1,11 +1,12 @@
 import { router } from '../utils'
 import { Request, Response } from 'express'
 import { Payment } from '../entities/Payment'
-import { Sale } from '../entities/Sale'
+import { Sale, SaleStatus } from '../entities/Sale'
 import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
 import { validatePayments } from '../validations'
 import { __Payment__ } from '../models/__Payment__'
+import { isEmpty } from '../validations/isEmpty'
 
 router.post('/payments', authorization, async (req: Request, res: Response) => {
   const inputs: __Payment__ = req.body
@@ -15,77 +16,148 @@ router.post('/payments', authorization, async (req: Request, res: Response) => {
     return res.status(400).json({ errors })
   }
 
-  let payment: __Payment__
-  const queryResult = await getConnection()
-    .createQueryBuilder()
-    .insert()
-    .into(Payment)
-    .values({
-      saleId: inputs.saleId,
-      amount: inputs.amount,
-      payer: inputs.payer,
-      payerPhone: inputs.payerPhone,
-      payee: req.user
-    })
-    .returning('*')
-    .execute()
+  try {
+    const queryResult = await getConnection()
+      .createQueryBuilder()
+      .insert()
+      .into(Payment)
+      .values({
+        saleId: inputs.saleId,
+        amount: inputs.amount,
+        payer: inputs.payer,
+        payerPhone: inputs.payerPhone,
+        comments: inputs.comments,
+        payee: req.user
+      })
+      .returning('*')
+      .execute()
+    if (!queryResult.raw[0]) {
+      return res.sendStatus(500)
+    }
+    // update the Sale entity with this new payment made
+    const updateSale = await getConnection()
+      .createQueryBuilder()
+      .update(Sale)
+      .set({
+        amountPaid: () => `"amountPaid" + ${inputs.amount}`,
+        amountLeft: () => `"amount" - ${inputs.amount}`,
+        status: SaleStatus.PAYING
+      })
+      .where('"id" = :saleId', {
+        saleId: queryResult.raw[0].saleId
+      })
+      .execute()
 
-  payment = queryResult.raw[0]
-  if (!payment) {
+    if (updateSale.affected !== 1) {
+      return res.sendStatus(500)
+    }
+  } catch (err) {
+    console.log(err)
     return res.sendStatus(500)
   }
-  // update the transaction entity with this new payment made
-  const updateSale = await getConnection()
-    .createQueryBuilder()
-    .update(Sale)
-    .set({
-      amountPaid: () => `"amountPaid" + ${inputs.amount}`
-    })
-    .where('"saleId" = :saleId', {
-      saleId: payment.saleId
-    })
-    .execute()
 
-  if (updateSale.affected !== 1) {
-    return res.sendStatus(500)
-  }
-  return res.status(201).json(payment)
+  return res.sendStatus(201)
 })
 
-router.get('/payments', authorization, async (req: Request, res: Response) => {
-  const limit = req.query.limit !== undefined ? +req.query.limit : 100
-  const offset = req.query.offset !== undefined ? +req.query.offset : 0
-
-  const products = await getConnection()
-    .getRepository(Payment)
-    .createQueryBuilder('payments')
-    .skip(offset)
-    .take(limit)
-    .getMany()
-
-  return res.status(200).json(products)
-})
-
-router.get(
-  '/payments/:saleId',
+router.put(
+  '/payments/:id',
   authorization,
   async (req: Request, res: Response) => {
-    const limit = req.query.limit !== undefined ? +req.query.limit : 100
-    const offset = req.query.offset !== undefined ? +req.query.offset : 0
-    const saleId: string = req.params.transactionId
+    const inputs: __Payment__ = req.body
+    const errors = validatePayments(inputs)
+    const id: string = req.params.id
 
-    const products = await getConnection()
-      .getRepository(Payment)
-      .createQueryBuilder('payments')
-      .where('payments."saleId" = :saleId', {
-        saleId: saleId
-      })
-      .skip(offset)
-      .take(limit)
-      .getMany()
+    if (errors) {
+      return res.status(400).json({ errors })
+    }
 
-    return res.status(200).json(products)
+    const findOne = await Payment.findOneOrFail({
+      where: {
+        id: id
+      }
+    })
+
+    try {
+      const queryResult = await getConnection()
+        .createQueryBuilder()
+        .update(Payment)
+        .set({
+          amount: inputs.amount,
+          comments: inputs.comments
+        })
+        .where('"id" = :id', {
+          id: id
+        })
+        .execute()
+
+      if (queryResult.affected !== 1) {
+        return res.sendStatus(500)
+      }
+
+      // update the Sale entity with this new payment made
+      const updateSale = await getConnection()
+        .createQueryBuilder()
+        .update(Sale)
+        .set({
+          amountPaid: () =>
+            `"amountPaid" + ${inputs.amount} - ${findOne.amount}`,
+          amountLeft: () => `"amount" - ${inputs.amount} + ${findOne.amount}`,
+          status: SaleStatus.PAYING
+        })
+        .where('"id" = :saleId', {
+          saleId: inputs.saleId
+        })
+        .execute()
+
+      if (updateSale.affected !== 1) {
+        return res.sendStatus(500)
+      }
+    } catch (err) {
+      console.log(err)
+      return res.sendStatus(500)
+    }
+    return res.sendStatus(200)
   }
 )
+
+router.get('/payments', authorization, async (req: Request, res: Response) => {
+  const page = req.query.page !== undefined ? +req.query.page : 10
+  const skip = req.query.skip !== undefined ? +req.query.skip : 0
+  const query = req.query.query
+  const fromDate = req.query.fromDate
+  const toDate = req.query.toDate
+
+  try {
+    if (!isEmpty(fromDate) && !isEmpty(toDate)) {
+      const [payments, count] = await getConnection()
+        .getRepository(Payment)
+        .createQueryBuilder('payments')
+        .leftJoinAndSelect('payments.payee', 'payee')
+        .where(`payments.createdAt BETWEEN '${fromDate}' AND '${toDate}'`)
+        .andWhere('payments."saleId" like :query', {
+          query: `%${query?.toString().toUpperCase()}%`
+        })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ payments, count })
+    } else {
+      const [payments, count] = await getConnection()
+        .getRepository(Payment)
+        .createQueryBuilder('payments')
+        .leftJoinAndSelect('payments.payee', 'payee')
+        .where('payments."saleId" like :query', {
+          query: `%${query?.toString().toUpperCase()}%`
+        })
+        .skip(skip)
+        .take(page)
+        .getManyAndCount()
+      return res.status(200).json({ payments, count })
+    }
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
+  }
+})
 
 export { router as payments }

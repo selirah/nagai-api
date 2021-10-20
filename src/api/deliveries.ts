@@ -2,6 +2,7 @@ import { router } from '../utils'
 import { Request, Response } from 'express'
 import { Delivery } from '../entities/Delivery'
 import { Order, Status } from '../entities/Order'
+import { Stock } from '../entities/Stock'
 import { Outlet } from '../entities/Outlet'
 import { authorization } from '../middleware/auth'
 import { getConnection } from 'typeorm'
@@ -95,8 +96,9 @@ router.put(
       }
       if (inputs.isDelivered) {
         await Order.update({ id: inputs.orderId }, { status: Status.DELIVERED })
+        makeStockDeductions(inputs.orderId)
       } else {
-        await Order.update({ id: inputs.orderId }, { status: Status.FAILED })
+        await Order.update({ id: inputs.orderId }, { status: Status.PENDING })
       }
     } catch (err) {
       console.log(err)
@@ -105,6 +107,25 @@ router.put(
     return res.sendStatus(200)
   }
 )
+
+async function makeStockDeductions(orderId: string) {
+  const order = await Order.findOne({ where: { id: orderId } })
+  if (order) {
+    const { items } = order
+    for (let item of items) {
+      await getConnection()
+        .createQueryBuilder()
+        .update(Stock)
+        .set({
+          quantityInStock: () => `"quantityInStock" - ${item.quantity}`
+        })
+        .where('"sku" = :sku', {
+          sku: item.sku
+        })
+        .execute()
+    }
+  }
+}
 
 router.get(
   '/deliveries',

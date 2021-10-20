@@ -31,6 +31,9 @@ export class Payment extends BaseEntity {
   @Column()
   payeeId: number
 
+  @Column({ nullable: true })
+  comments: string
+
   @ManyToOne(() => Sale, (sale) => sale.payments)
   @JoinColumn({ name: 'saleId' })
   sale: Sale

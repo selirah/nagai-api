@@ -5,6 +5,7 @@ export class __Payment__ {
   payer: string
   payerPhone: string
   payeeId: number
+  comments: string
   createdAt: Date
   updatedAt: Date
 }
