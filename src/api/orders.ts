@@ -244,7 +244,6 @@ router.post(
         .into(Order)
         .values(inputs)
         .execute()
-
       return res.sendStatus(201)
     } catch (err) {
       console.log(err)

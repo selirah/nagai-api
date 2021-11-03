@@ -18,7 +18,8 @@ import {
   sales,
   payments,
   stockTrails,
-  invoices
+  invoices,
+  statistics
 } from './api'
 const api: string = '/api/v1'
 import { passportMiddleware } from './middleware/passport'
@@ -51,6 +52,7 @@ app.use(api, payments)
 app.use(api, stockTrails)
 app.use(api, stockTrails)
 app.use(api, invoices)
+app.use(api, statistics)
 
 /**
  * Test route for websocket
