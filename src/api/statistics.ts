@@ -161,4 +161,73 @@ router.get(
   }
 )
 
+router.get(
+  '/statistics/outlets',
+  authorization,
+  async (req: Request, res: Response) => {
+    const fromDate = req.query.fromDate
+    const toDate = req.query.toDate
+
+    if (!isEmpty(fromDate) && !isEmpty(toDate)) {
+      const query = await getManager().query(
+        'SELECT COUNT("outlet"."id") AS "Total Outlets", "outlet".region AS "Region" FROM "outlet" WHERE "outlet"."createdAt" BETWEEN $1 AND $2 GROUP BY "outlet".region',
+        [fromDate, toDate]
+      )
+      return res.status(200).json(query)
+    } else {
+      const query = await getManager().query(
+        'SELECT COUNT("outlet"."id") AS "Total Outlets", "outlet".region AS "Region" FROM "outlet" GROUP BY "outlet".region'
+      )
+
+      return res.status(200).json(query)
+    }
+  }
+)
+
+router.get(
+  '/statistics/manufacturers',
+  authorization,
+  async (req: Request, res: Response) => {
+    const fromDate = req.query.fromDate
+    const toDate = req.query.toDate
+
+    if (!isEmpty(fromDate) && !isEmpty(toDate)) {
+      const query = await getManager().query(
+        'SELECT COUNT("product"."id") AS "Product Count", "manufacturer"."name" AS "Manufacturer" FROM "manufacturer" JOIN "product" ON ("product"."manufacturerId" = "manufacturer"."id") WHERE "manufacturer"."createdAt" BETWEEN $1 AND $2 GROUP BY "manufacturer"."name"',
+        [fromDate, toDate]
+      )
+      return res.status(200).json(query)
+    } else {
+      const query = await getManager().query(
+        'SELECT COUNT("product"."id") AS "Product Count", "manufacturer"."name" AS "Manufacturer" FROM "manufacturer" JOIN "product" ON ("product"."manufacturerId" = "manufacturer"."id") GROUP BY "manufacturer"."name"'
+      )
+
+      return res.status(200).json(query)
+    }
+  }
+)
+
+router.get(
+  '/statistics/territories',
+  authorization,
+  async (req: Request, res: Response) => {
+    const fromDate = req.query.fromDate
+    const toDate = req.query.toDate
+
+    if (!isEmpty(fromDate) && !isEmpty(toDate)) {
+      const query = await getManager().query(
+        'SELECT COUNT("territory"."id") AS "Total Territories", "region".region AS "Region" FROM "territory" JOIN "region" ON ("region"."id" = "territory"."regionId") WHERE "territory"."createdAt" BETWEEN $1 AND $2 GROUP BY "region".region',
+        [fromDate, toDate]
+      )
+      return res.status(200).json(query)
+    } else {
+      const query = await getManager().query(
+        'SELECT COUNT("territory"."id") AS "Total Territories", "region".region AS "Region" FROM "territory" JOIN "region" ON ("region"."id" = "territory"."regionId") GROUP BY "region".region'
+      )
+
+      return res.status(200).json(query)
+    }
+  }
+)
+
 export { router as statistics }
