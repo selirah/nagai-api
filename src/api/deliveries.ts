@@ -275,10 +275,9 @@ router.get(
         .where('deliveries."id" = :id', {
           id: id
         })
-        .getOneOrFail()
-
+        .getOne()
       const outlet = await Outlet.findOne({
-        where: { id: delivery.order.outletId }
+        where: { id: delivery!.order.outletId }
       })
 
       return res.status(200).json({ delivery, outlet })

@@ -108,7 +108,7 @@ router.get('/user-territories/:userId', async (req: Request, res: Response) => {
       .where('outlets."userId" = :user_id', {
         user_id: userId
       })
-      .getOneOrFail()
+      .getOne()
     return res.status(200).json(userTerritories)
   } catch (err) {
     console.log(err)
