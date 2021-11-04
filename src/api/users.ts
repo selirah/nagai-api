@@ -9,9 +9,10 @@ import {
   validateVerification,
   validateResetPassword,
   validateLogin,
-  validateAgentAndDispatch
+  validateAgentAndDispatch,
+  validateChangePassword
 } from '../validations'
-import { __User__ } from '../models/__User__'
+import { __User__, __ChangePassword__ } from '../models/__User__'
 import { __Code__ } from '../models/__Code__'
 import argon2 from 'argon2'
 import { getConnection, Brackets } from 'typeorm'
@@ -371,36 +372,23 @@ router.get('/users', authorization, async (req: Request, res: Response) => {
   }
 })
 
-router.get(
-  '/users/search',
-  authorization,
-  async (req: Request, res: Response) => {
-    const query = req.query.q
-    let users: User[] = []
-    try {
-      users = await getConnection()
-        .getRepository(User)
-        .createQueryBuilder('users')
-        .where('users."firstName" like :query', {
-          query: `%${query?.toString().toLowerCase()}%`
-        })
-        .orWhere('users."lastName" like :query', {
-          query: `%${query?.toString().toLowerCase()}%`
-        })
-        .orWhere('users."email" like :query', {
-          query: `%${query?.toString()}%`
-        })
-        .orWhere('users."phone" like :query', {
-          query: `%${query?.toString()}%`
-        })
-        .getMany()
-      return res.status(200).json(users)
-    } catch (err) {
-      console.log(err)
-      return res.sendStatus(500)
-    }
+router.get('/user/:id', authorization, async (req: Request, res: Response) => {
+  const userId: number = parseInt(req.params.id)
+
+  try {
+    const user = await getConnection()
+      .getRepository(User)
+      .createQueryBuilder('users')
+      .where('users."id" = :id', {
+        id: userId
+      })
+      .getOne()
+    return res.status(200).json(user)
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
   }
-)
+})
 
 router.delete(
   '/users/:id',
@@ -448,5 +436,55 @@ router.post(
     }
   }
 )
+
+router.post('/user/change-password', async (req: Request, res: Response) => {
+  const options: __ChangePassword__ = req.body
+  const errors = validateChangePassword(options)
+  if (errors) {
+    return res.status(400).json({ errors })
+  }
+
+  const user = await User.findOne({ where: { id: options.id } })
+  if (!user) {
+    const errors = [
+      {
+        field: 'user',
+        message: 'System Error'
+      }
+    ]
+    return res.status(401).json({ errors })
+  }
+  const valid = await argon2.verify(user.password, options.oldPassword)
+  if (!valid) {
+    const errors = [
+      {
+        field: 'password',
+        message: 'Your old password is invalid'
+      }
+    ]
+    return res.status(401).json({ errors })
+  }
+  const hashedPassword = await argon2.hash(options.newPassword)
+  try {
+    const queryResult = await getConnection()
+      .createQueryBuilder()
+      .update(User)
+      .set({
+        password: hashedPassword
+      })
+      .where('id = :id', {
+        id: options.id
+      })
+      .execute()
+
+    if (queryResult.affected !== 1) {
+      return res.sendStatus(500)
+    }
+    return res.sendStatus(200)
+  } catch (err) {
+    console.log(err)
+    return res.sendStatus(500)
+  }
+})
 
 export { router as users }

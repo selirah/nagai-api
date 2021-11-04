@@ -1,5 +1,5 @@
 import validator from 'validator'
-import { __User__ } from '../models/__User__'
+import { __ChangePassword__, __User__ } from '../models/__User__'
 import { __Code__ } from '../models/__Code__'
 
 export const validateRegister = (inputs: __User__) => {
@@ -227,5 +227,28 @@ export const validateAgentAndDispatch = (inputs: __User__) => {
       }
     ]
   }
+
+  return null
+}
+
+export const validateChangePassword = (inputs: __ChangePassword__) => {
+  if (validator.isEmpty(inputs.oldPassword)) {
+    return [
+      {
+        field: 'oldPassword',
+        message: 'Old password is required'
+      }
+    ]
+  }
+
+  if (validator.isEmpty(inputs.newPassword)) {
+    return [
+      {
+        field: 'newPassword',
+        message: 'New Password is required'
+      }
+    ]
+  }
+
   return null
 }

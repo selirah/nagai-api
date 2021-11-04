@@ -55,44 +55,20 @@ export const validateCompany = (inputs: __Company__) => {
     ]
   }
 
-  if (!validator.isMobilePhone(inputs.phone)) {
+  if (validator.isEmpty(inputs.smsID)) {
     return [
       {
-        field: 'phone',
-        message: 'Phone number must be a valid'
+        field: 'smsID',
+        message: 'SMS ID of company is required'
       }
     ]
   }
 
-  if (
-    !validator.isEmpty(`${inputs.coordinates.lat}`) &&
-    !validator.isFloat(`${inputs.coordinates.lng}`)
-  ) {
+  if (!validator.isLength(inputs.smsID, { max: 11 })) {
     return [
       {
-        field: 'lat',
-        message: 'Latitude must be valid'
-      }
-    ]
-  }
-
-  if (
-    !validator.isEmpty(`${inputs.coordinates.lng}`) &&
-    !validator.isFloat(`${inputs.coordinates.lng}`)
-  ) {
-    return [
-      {
-        field: 'lng',
-        message: 'Longitude must be valid'
-      }
-    ]
-  }
-
-  if (!validator.isBase64(inputs.logo)) {
-    return [
-      {
-        field: 'logo',
-        message: 'Wrong image format'
+        field: 'smsID',
+        message: 'SMS ID must have a maximum of 11 characters'
       }
     ]
   }

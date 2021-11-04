@@ -26,6 +26,19 @@ import { passportMiddleware } from './middleware/passport'
 import path from 'path'
 
 const app = express()
+
+// let whitelist = ['http://localhost:3000', 'http://localhost']
+// let corsOptions = {
+//   origin: function (origin: any, callback: any) {
+//     if (whitelist.indexOf(origin) !== -1) {
+//       callback(null, true)
+//     } else {
+//       callback('Not available')
+//     }
+//   },
+//   credentials: true
+// }
+
 app.use(cors({ origin: '*', credentials: true }))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
